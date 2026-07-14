@@ -353,6 +353,26 @@ body {
 .sync-dot.orange { background-color: var(--warning-color); box-shadow: 0 0 6px var(--warning-color); }
 .sync-dot.red { background-color: var(--danger-color); box-shadow: 0 0 6px var(--danger-color); }
 
+.btn-header-logout {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.btn-header-logout:hover {
+    color: var(--danger-color);
+    background: rgba(255, 59, 48, 0.1);
+}
+.btn-header-logout:active {
+    transform: scale(0.9);
+}
+
 .header-bottom {
     display: flex;
     justify-content: space-between;

@@ -326,6 +326,12 @@ function setupEventListeners() {
         });
     }
 
+    // Botón de cerrar sesión (siempre visible en el header)
+    const logoutBtn = document.getElementById("btn-logout");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", handleLogout);
+    }
+
     // 2. Navegación por Pestañas
     document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -451,10 +457,7 @@ function switchTab(tabName) {
     const actionContainer = document.getElementById("header-action-container");
     actionContainer.innerHTML = "";
     
-    if (tabName === "calendario") {
-        actionContainer.innerHTML = `<button class="apple-btn-secondary btn-small" id="btn-logout">Cerrar Sesión</button>`;
-        document.getElementById("btn-logout").addEventListener("click", handleLogout);
-    }
+    // El botón de cerrar sesión ahora está siempre visible en el header (index.html)
     
     // Renderizar contenidos dinámicos
     if (tabName === "calendario") renderCalendarList();
@@ -1231,6 +1234,7 @@ async function initSupabaseConnection() {
     // Probar conexión y realizar sincronización inicial
     try {
         await runSupabaseSync();
+        startAutoSync(); // Iniciar sincronización periódica cada 30 segundos
     } catch (e) {
         console.warn("Fallo al conectar/sincronizar con Supabase (ejecutando offline):", e);
         updateSyncIndicator("red");
@@ -1364,4 +1368,26 @@ window.addEventListener("online", () => {
 
 window.addEventListener("offline", () => {
     updateSyncIndicator("red");
+});
+
+// Sincronización automática periódica (cada 30 segundos)
+let autoSyncInterval = null;
+function startAutoSync() {
+    if (autoSyncInterval) clearInterval(autoSyncInterval);
+    autoSyncInterval = setInterval(async () => {
+        if (navigator.onLine && supabase) {
+            try {
+                await runSupabaseSync();
+            } catch (e) {
+                console.warn("Auto-sync periódico falló:", e);
+            }
+        }
+    }, 30000); // Cada 30 segundos
+}
+
+// Sincronizar también cuando la app vuelve a estar visible (tab/app switch)
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && navigator.onLine && supabase) {
+        triggerBackgroundSync();
+    }
 });
