@@ -35,8 +35,20 @@
             </div>
             
             <div class="lock-profile-container">
-                <button class="unlock-btn" id="btn-unlock-direct">
-                    <span>Ingresar</span> ✨
+                <button class="unlock-btn-wand" id="btn-unlock-direct" title="Ingresar">
+                    <svg class="magic-wand-svg" viewBox="0 0 100 100" fill="none">
+                        <!-- El mango de la varita -->
+                        <path d="M 25,75 L 70,30" stroke="#d4af37" stroke-width="6" stroke-linecap="round" />
+                        <path d="M 22,78 L 28,72" stroke="#8b5a2b" stroke-width="8" stroke-linecap="round" />
+                        <!-- Punta brillante -->
+                        <circle cx="70" cy="30" r="3" fill="#ffffff" />
+                        <!-- Destellos mágicos -->
+                        <path class="sparkle sp-1" d="M 70,10 L 70,18 M 66,14 L 74,14" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+                        <path class="sparkle sp-2" d="M 86,22 L 86,28 M 83,25 L 89,25" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+                        <path class="sparkle sp-3" d="M 54,38 L 54,44 M 51,41 L 57,41" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+                        <!-- Estrellita grande -->
+                        <path class="magic-star" d="M 70,18 Q 70,30 82,30 Q 70,30 70,42 Q 70,30 58,30 Q 70,30 70,18 Z" fill="#ffd700" />
+                    </svg>
                 </button>
             </div>
         </div>
