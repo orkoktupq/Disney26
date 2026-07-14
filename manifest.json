@@ -1,0 +1,16 @@
+{
+  "name": "Disney & Universal Itinerario 2026",
+  "short_name": "Orlando 2026",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0e0a24",
+  "theme_color": "#0e0a24",
+  "icons": [
+    {
+      "src": "processed_app_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
