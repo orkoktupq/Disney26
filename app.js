@@ -9,7 +9,7 @@ const SUPABASE_CONFIG = {
     anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhbHl6a3F6Zmhxd2Z6bnhlZ2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE4OTUsImV4cCI6MjA5MjY5Nzg5NX0.pNQog1YLK3cOJps9KQUKxYB6JiAWxn6V1Gm-PKw_Au4"
 };
 
-let supabase = null;
+let supabaseClient = null;
 
 // --- DATOS INICIALES REALISTAS DE FACTO (FALLBACK LOCAL) ---
 const DEFAULT_ITINERARY = [
@@ -1229,7 +1229,7 @@ async function initSupabaseConnection() {
     }
 
     // Inicializar cliente Supabase
-    supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+    supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
     
     // Probar conexión y realizar sincronización inicial
     try {
@@ -1255,7 +1255,7 @@ function updateSyncIndicator(color) {
 
 // Motor de sincronización
 async function runSupabaseSync() {
-    if (!supabase) return;
+    if (!supabaseClient) return;
     
     updateSyncIndicator("orange");
     
@@ -1280,7 +1280,7 @@ async function runSupabaseSync() {
                     // Solo hacer upsert si el ID es un UUID válido (no "i1", "a1", etc.)
                     if (isValidUUID(row.id)) {
                         try {
-                            const { error } = await supabase
+                            const { error } = await supabaseClient
                                 .from(supabaseTable)
                                 .upsert(row);
                             if (error) console.warn(`Upsert error en ${supabaseTable}:`, error.message);
@@ -1295,7 +1295,7 @@ async function runSupabaseSync() {
             }
             
             // 2. Traer los datos más nuevos de Supabase
-            const { data: cloudData, error } = await supabase
+            const { data: cloudData, error } = await supabaseClient
                 .from(supabaseTable)
                 .select("*");
                 
@@ -1345,7 +1345,7 @@ async function runSupabaseSync() {
 // Disparador de sincronización sutil con throttle
 let syncTimeout = null;
 function triggerBackgroundSync() {
-    if (!navigator.onLine || !supabase) {
+    if (!navigator.onLine || !supabaseClient) {
         updateSyncIndicator("red");
         return;
     }
@@ -1364,7 +1364,7 @@ function triggerBackgroundSync() {
 // Escuchar cambios de red del navegador
 window.addEventListener("online", () => {
     if (SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey) {
-        if (!supabase) {
+        if (!supabaseClient) {
             initSupabaseConnection();
         } else {
             triggerBackgroundSync();
@@ -1383,7 +1383,7 @@ let autoSyncInterval = null;
 function startAutoSync() {
     if (autoSyncInterval) clearInterval(autoSyncInterval);
     autoSyncInterval = setInterval(async () => {
-        if (navigator.onLine && supabase) {
+        if (navigator.onLine && supabaseClient) {
             try {
                 await runSupabaseSync();
             } catch (e) {
@@ -1395,7 +1395,7 @@ function startAutoSync() {
 
 // Sincronizar también cuando la app vuelve a estar visible (tab/app switch)
 document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && navigator.onLine && supabase) {
+    if (document.visibilityState === "visible" && navigator.onLine && supabaseClient) {
         triggerBackgroundSync();
     }
 });
