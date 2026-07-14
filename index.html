@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="style.css">
     <!-- PWA & Apple Standalone App Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Orlando 2026">
     <link rel="apple-touch-icon" href="processed_app_icon.png">
     <link rel="shortcut icon" href="processed_app_icon.png" type="image/png">
@@ -35,37 +35,9 @@
             </div>
             
             <div class="lock-profile-container">
-                <h2 class="lock-title">¿Quién está viajando?</h2>
-                <div class="profiles">
-                    <button class="profile-btn" data-user="Juanma">
-                        <div class="profile-avatar avatar-juanma">J</div>
-                        <span class="profile-name">Juanma</span>
-                    </button>
-                    <button class="profile-btn" data-user="Sofi">
-                        <div class="profile-avatar avatar-sofi">S</div>
-                        <span class="profile-name">Sofi</span>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Simulación de Desbloqueo Face ID -->
-            <div id="face-id-overlay" class="face-id-overlay">
-                <div class="face-id-icon-container">
-                    <svg class="face-id-scanner" viewBox="0 0 100 100" fill="none" stroke="currentColor">
-                        <rect x="15" y="15" width="70" height="70" rx="15" stroke-width="4"/>
-                        <path d="M 30,30 L 40,30 M 30,30 L 30,40" stroke-width="4"/>
-                        <path d="M 70,30 L 60,30 M 70,30 L 70,40" stroke-width="4"/>
-                        <path d="M 30,70 L 40,70 M 30,70 L 30,60" stroke-width="4"/>
-                        <path d="M 70,70 L 60,70 M 70,70 L 70,60" stroke-width="4"/>
-                        <!-- Elementos de la cara -->
-                        <path d="M 38,45 Q 43,42 48,45" stroke-width="3"/>
-                        <path d="M 52,45 Q 57,42 62,45" stroke-width="3"/>
-                        <path d="M 50,38 L 50,55" stroke-width="3"/>
-                        <path d="M 43,62 Q 50,68 57,62" stroke-width="3"/>
-                    </svg>
-                    <div class="face-id-line"></div>
-                </div>
-                <p id="face-id-status" class="face-id-status">Buscando Face ID de <span id="face-id-user-name"></span>...</p>
+                <button class="unlock-btn" id="btn-unlock-direct">
+                    <span>Ingresar</span> ✨
+                </button>
             </div>
         </div>
 
@@ -76,7 +48,7 @@
             <header class="app-header">
                 <div class="header-top">
                     <div class="header-user">
-                        Hola, <span id="current-user-name">Juanma</span> 👋
+                        Hola, <span id="current-user-name">Juanma y Sofi</span> 👋
                     </div>
                     <div class="header-widgets">
                         <!-- Widget de Clima de Orlando siempre visible -->

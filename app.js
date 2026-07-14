@@ -316,14 +316,15 @@ function generateUUID() {
 
 // --- CONFIGURACIÓN DE EVENT LISTENERS ---
 function setupEventListeners() {
-    // 1. Selector de Perfil en Pantalla de Bloqueo (Face ID simulation)
-    document.querySelectorAll(".profile-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const user = btn.getAttribute("data-user");
-            currentUser = user;
-            triggerFaceIDUnlock(user);
+    // 1. Botón de ingreso directo (Usuario único "Juanma y Sofi")
+    const unlockBtn = document.getElementById("btn-unlock-direct");
+    if (unlockBtn) {
+        unlockBtn.addEventListener("click", () => {
+            currentUser = "Juanma y Sofi";
+            localStorage.setItem("disney_2026_user", currentUser);
+            unlockApp();
         });
-    });
+    }
 
     // 2. Navegación por Pestañas
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -402,45 +403,7 @@ function setupEventListeners() {
     document.getElementById("attraction-preset").addEventListener("change", handleAttractionPresetChange);
 }
 
-// --- SIMULACIÓN DE FACE ID UNLOCK ---
-function triggerFaceIDUnlock(user) {
-    const overlay = document.getElementById("face-id-overlay");
-    const statusText = document.getElementById("face-id-status");
-    
-    // Configurar nombre
-    document.getElementById("face-id-user-name").textContent = user;
-    
-    // Resetear clases y textos
-    overlay.classList.add("active");
-    overlay.classList.remove("success");
-    statusText.innerHTML = `Buscando Face ID de <strong>${user}</strong>...`;
-    statusText.style.color = "#ffffff";
-    
-    // Sonido/Vibración háptica inicial
-    if (navigator.vibrate) {
-        navigator.vibrate(100);
-    }
-    
-    // Paso 1: Escaneando... (1.5 segundos)
-    setTimeout(() => {
-        // Face ID verificado
-        overlay.classList.add("success");
-        statusText.innerHTML = "Face ID verificado ✓";
-        statusText.style.color = "#30d158";
-        
-        if (navigator.vibrate) {
-            navigator.vibrate([60, 40, 60]); // Doble click háptico de Face ID
-        }
-        
-        // Paso 2: Desbloquear app (0.6 segundos después)
-        setTimeout(() => {
-            overlay.classList.remove("active");
-            localStorage.setItem("disney_2026_user", user);
-            unlockApp();
-        }, 600);
-        
-    }, 1500);
-}
+
 
 function unlockApp() {
     document.getElementById("lock-screen").classList.add("hidden");
