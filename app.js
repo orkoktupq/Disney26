@@ -258,6 +258,8 @@ function initClock() {
     const timeEl = document.getElementById("lock-time");
     const dateEl = document.getElementById("lock-date");
     
+    if (!timeEl || !dateEl) return;
+    
     function updateClock() {
         const now = new Date();
         timeEl.textContent = now.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false });
