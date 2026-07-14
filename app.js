@@ -506,11 +506,6 @@ function handleLogout() {
     currentUser = null;
     currentPasscode = "";
     
-    // Resetear dots de contraseña
-    const dots = document.querySelectorAll(".passcode-dots .dot");
-    dots.forEach(d => d.classList.remove("filled"));
-    
-    document.getElementById("passcode-container").classList.add("hidden");
     document.getElementById("app-container").classList.add("hidden");
     
     document.getElementById("lock-screen").classList.remove("hidden");
