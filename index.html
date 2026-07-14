@@ -48,31 +48,24 @@
                 </div>
             </div>
             
-            <!-- Modal de Ingreso de Código (Passcode) -->
-            <div id="passcode-container" class="passcode-container hidden">
-                <p class="passcode-prompt">Ingresá el código para <span id="selected-user-name"></span></p>
-                <div class="passcode-dots">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
+            <!-- Simulación de Desbloqueo Face ID -->
+            <div id="face-id-overlay" class="face-id-overlay">
+                <div class="face-id-icon-container">
+                    <svg class="face-id-scanner" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                        <rect x="15" y="15" width="70" height="70" rx="15" stroke-width="4"/>
+                        <path d="M 30,30 L 40,30 M 30,30 L 30,40" stroke-width="4"/>
+                        <path d="M 70,30 L 60,30 M 70,30 L 70,40" stroke-width="4"/>
+                        <path d="M 30,70 L 40,70 M 30,70 L 30,60" stroke-width="4"/>
+                        <path d="M 70,70 L 60,70 M 70,70 L 70,60" stroke-width="4"/>
+                        <!-- Elementos de la cara -->
+                        <path d="M 38,45 Q 43,42 48,45" stroke-width="3"/>
+                        <path d="M 52,45 Q 57,42 62,45" stroke-width="3"/>
+                        <path d="M 50,38 L 50,55" stroke-width="3"/>
+                        <path d="M 43,62 Q 50,68 57,62" stroke-width="3"/>
+                    </svg>
+                    <div class="face-id-line"></div>
                 </div>
-                <div class="passcode-keypad">
-                    <button class="keypad-btn" data-val="1">1</button>
-                    <button class="keypad-btn" data-val="2">2</button>
-                    <button class="keypad-btn" data-val="3">3</button>
-                    <button class="keypad-btn" data-val="4">4</button>
-                    <button class="keypad-btn" data-val="5">5</button>
-                    <button class="keypad-btn" data-val="6">6</button>
-                    <button class="keypad-btn" data-val="7">7</button>
-                    <button class="keypad-btn" data-val="8">8</button>
-                    <button class="keypad-btn" data-val="9">9</button>
-                    <button class="keypad-btn cancel-btn" data-val="cancel">Atrás</button>
-                    <button class="keypad-btn" data-val="0">0</button>
-                    <button class="keypad-btn delete-btn" data-val="delete">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
-                    </button>
-                </div>
+                <p id="face-id-status" class="face-id-status">Buscando Face ID de <span id="face-id-user-name"></span>...</p>
             </div>
         </div>
 

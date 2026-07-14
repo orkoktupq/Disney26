@@ -316,27 +316,16 @@ function generateUUID() {
 
 // --- CONFIGURACIÓN DE EVENT LISTENERS ---
 function setupEventListeners() {
-    // 1. Selector de Perfil en Pantalla de Bloqueo
+    // 1. Selector de Perfil en Pantalla de Bloqueo (Face ID simulation)
     document.querySelectorAll(".profile-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const user = btn.getAttribute("data-user");
             currentUser = user;
-            document.getElementById("selected-user-name").textContent = user;
-            
-            // Mostrar teclado passcode
-            document.getElementById("passcode-container").classList.remove("hidden");
+            triggerFaceIDUnlock(user);
         });
     });
 
-    // 2. Teclado de Passcode
-    document.querySelectorAll(".keypad-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const val = btn.getAttribute("data-val");
-            handlePasscodePress(val);
-        });
-    });
-
-    // 3. Navegación por Pestañas
+    // 2. Navegación por Pestañas
     document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const tabName = btn.getAttribute("data-tab");
@@ -413,55 +402,44 @@ function setupEventListeners() {
     document.getElementById("attraction-preset").addEventListener("change", handleAttractionPresetChange);
 }
 
-// --- MANEJO DE PASSCODE ---
-function handlePasscodePress(val) {
-    const dots = document.querySelectorAll(".passcode-dots .dot");
+// --- SIMULACIÓN DE FACE ID UNLOCK ---
+function triggerFaceIDUnlock(user) {
+    const overlay = document.getElementById("face-id-overlay");
+    const statusText = document.getElementById("face-id-status");
     
-    if (val === "cancel") {
-        currentPasscode = "";
-        dots.forEach(d => d.classList.remove("filled"));
-        document.getElementById("passcode-container").classList.add("hidden");
-        currentUser = null;
-        return;
+    // Configurar nombre
+    document.getElementById("face-id-user-name").textContent = user;
+    
+    // Resetear clases y textos
+    overlay.classList.add("active");
+    overlay.classList.remove("success");
+    statusText.innerHTML = `Buscando Face ID de <strong>${user}</strong>...`;
+    statusText.style.color = "#ffffff";
+    
+    // Sonido/Vibración háptica inicial
+    if (navigator.vibrate) {
+        navigator.vibrate(100);
     }
     
-    if (val === "delete") {
-        if (currentPasscode.length > 0) {
-            currentPasscode = currentPasscode.slice(0, -1);
-            dots[currentPasscode.length].classList.remove("filled");
+    // Paso 1: Escaneando... (1.5 segundos)
+    setTimeout(() => {
+        // Face ID verificado
+        overlay.classList.add("success");
+        statusText.innerHTML = "Face ID verificado ✓";
+        statusText.style.color = "#30d158";
+        
+        if (navigator.vibrate) {
+            navigator.vibrate([60, 40, 60]); // Doble click háptico de Face ID
         }
-        return;
-    }
-    
-    // Agregar número
-    if (currentPasscode.length < 4) {
-        currentPasscode += val;
-        dots[currentPasscode.length - 1].classList.add("filled");
-    }
-    
-    // Validar contraseña
-    if (currentPasscode.length === 4) {
-        if (currentPasscode === "1315") {
-            // Contraseña Correcta
-            localStorage.setItem("disney_2026_user", currentUser);
+        
+        // Paso 2: Desbloquear app (0.6 segundos después)
+        setTimeout(() => {
+            overlay.classList.remove("active");
+            localStorage.setItem("disney_2026_user", user);
             unlockApp();
-        } else {
-            // Contraseña Incorrecta - Efecto sacudida
-            const container = document.getElementById("passcode-container");
-            container.classList.add("shake");
-            
-            // Vibrar dispositivo si tiene soporte háptico
-            if (navigator.vibrate) {
-                navigator.vibrate(200);
-            }
-            
-            setTimeout(() => {
-                container.classList.remove("shake");
-                currentPasscode = "";
-                dots.forEach(d => d.classList.remove("filled"));
-            }, 400);
-        }
-    }
+        }, 600);
+        
+    }, 1500);
 }
 
 function unlockApp() {
