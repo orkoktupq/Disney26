@@ -5,8 +5,8 @@
 // Juanma: Aquí puedes indicarme tu URL y Anon Key de Supabase cuando quieras y yo las pegaré aquí.
 // Si están vacías, la app funciona de forma 100% local en tu dispositivo con persistencia en localStorage.
 const SUPABASE_CONFIG = {
-    url: "",      // COMPLETAR CON TU URL DE SUPABASE
-    anonKey: ""   // COMPLETAR CON TU CLAVE ANON DE SUPABASE
+    url: "https://qalyzkqzfhqwfznxegcb.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhbHl6a3F6Zmhxd2Z6bnhlZ2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE4OTUsImV4cCI6MjA5MjY5Nzg5NX0.pNQog1YLK3cOJps9KQUKxYB6JiAWxn6V1Gm-PKw_Au4"
 };
 
 let supabase = null;
