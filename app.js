@@ -1267,19 +1267,27 @@ async function runSupabaseSync() {
         tips: "travel_tips"
     };
     
+    // Función para validar si un ID es UUID válido
+    const isValidUUID = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    
     try {
         for (const [localKey, supabaseTable] of Object.entries(tablesMap)) {
-            // 1. Si hay cambios locales "sucios" (dirty), los subimos primero
+            // 1. Si hay cambios locales "sucios" (dirty), subir solo los que tengan UUID válido
             if (db.dirty[localKey]) {
                 const localData = db[localKey];
                 
-                // Iterar y hacer "upsert" en Supabase para cada fila
                 for (const row of localData) {
-                    const { error } = await supabase
-                        .from(supabaseTable)
-                        .upsert(row);
-                        
-                    if (error) throw error;
+                    // Solo hacer upsert si el ID es un UUID válido (no "i1", "a1", etc.)
+                    if (isValidUUID(row.id)) {
+                        try {
+                            const { error } = await supabase
+                                .from(supabaseTable)
+                                .upsert(row);
+                            if (error) console.warn(`Upsert error en ${supabaseTable}:`, error.message);
+                        } catch (e) {
+                            console.warn(`Error al subir fila a ${supabaseTable}:`, e);
+                        }
+                    }
                 }
                 
                 // Apagar bandera dirty
@@ -1294,9 +1302,9 @@ async function runSupabaseSync() {
             if (error) throw error;
             
             if (cloudData && cloudData.length > 0) {
-                // Hacer una fusión inteligente (Merge) comparando updated_at
-                const localData = db[localKey];
-                const merged = [...localData];
+                // Filtrar datos locales: quedarse solo con los que tienen UUID válido
+                const validLocalData = db[localKey].filter(item => isValidUUID(item.id));
+                const merged = [...validLocalData];
                 
                 cloudData.forEach(cloudRow => {
                     const localIdx = merged.findIndex(l => l.id === cloudRow.id);
