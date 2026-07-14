@@ -645,9 +645,14 @@ function renderParkChecklist() {
             <div class="attraction-content">
                 <div class="attraction-name-row">
                     <span class="attraction-title">${att.name}</span>
-                    <button class="btn-delete-card" data-action="delete" title="Eliminar">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                    </button>
+                    <div class="card-action-buttons">
+                        <button class="btn-edit-card" data-action="edit" title="Editar">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="btn-delete-card" data-action="delete" title="Eliminar">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    </div>
                 </div>
                 <span class="attraction-land-badge">${att.land}</span>
                 ${att.notes ? `<p class="attraction-desc">${att.notes}</p>` : ''}
@@ -656,6 +661,12 @@ function renderParkChecklist() {
         
         // Listener completar checkbox
         card.querySelector(".attraction-checkbox").addEventListener("click", () => toggleAttractionComplete(att.id));
+        
+        // Listener editar atracción
+        card.querySelector('[data-action="edit"]').addEventListener("click", (e) => {
+            e.stopPropagation();
+            openEditAttractionModal(att.id);
+        });
         
         // Listener eliminar atracción
         card.querySelector('[data-action="delete"]').addEventListener("click", (e) => {
@@ -785,28 +796,53 @@ function handleAttractionPresetChange(e) {
     }
 }
 
+function openEditAttractionModal(id) {
+    const att = db.attractions.find(a => a.id === id);
+    if (!att) return;
+    
+    openAddAttractionModal();
+    
+    document.getElementById("attraction-id").value = att.id;
+    document.getElementById("attraction-name").value = att.name;
+    document.getElementById("attraction-land").value = att.land;
+    document.getElementById("attraction-notes").value = att.notes || "";
+    
+    document.getElementById("modal-attraction").querySelector("h2").textContent = "Editar Atracción";
+}
+
 function handleAttractionSubmit(e) {
-    const park = activePark;
+    const id = document.getElementById("attraction-id").value;
     const name = document.getElementById("attraction-name").value;
     const land = document.getElementById("attraction-land").value;
     const notes = document.getElementById("attraction-notes").value;
     
-    // Contar cuántas atracciones hay para este parque para poner el orden al final
-    const currentCount = db.attractions.filter(a => a.park === park).length;
+    if (id) {
+        const attIdx = db.attractions.findIndex(a => a.id === id);
+        if (attIdx !== -1) {
+            db.attractions[attIdx].name = name;
+            db.attractions[attIdx].land = land;
+            db.attractions[attIdx].notes = notes;
+            db.attractions[attIdx].updated_at = new Date().toISOString();
+        }
+    } else {
+        const park = activePark;
+        const currentCount = db.attractions.filter(a => a.park === park).length;
+        
+        const newAtt = {
+            id: generateUUID(),
+            park,
+            name,
+            land,
+            notes,
+            is_completed: false,
+            visit_order: currentCount + 1,
+            date: null,
+            updated_at: new Date().toISOString()
+        };
+        
+        db.attractions.push(newAtt);
+    }
     
-    const newAtt = {
-        id: generateUUID(),
-        park,
-        name,
-        land,
-        notes,
-        is_completed: false,
-        visit_order: currentCount + 1,
-        date: null,
-        updated_at: new Date().toISOString()
-    };
-    
-    db.attractions.push(newAtt);
     saveLocal("attractions");
     renderParkChecklist();
 }
@@ -845,35 +881,66 @@ function renderTipsList(category = "all") {
             <h3>${tip.title}</h3>
             <p>${tip.content}</p>
             <div class="tip-footer">
-                <button class="btn-delete-card" data-action="delete" title="Eliminar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                </button>
+                <div class="card-action-buttons">
+                    <button class="btn-edit-card" data-action="edit" title="Editar">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="btn-delete-card" data-action="delete" title="Eliminar">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
             </div>
         `;
         
+        card.querySelector('[data-action="edit"]').addEventListener("click", () => openEditTipModal(tip.id));
         card.querySelector('[data-action="delete"]').addEventListener("click", () => deleteTip(tip.id));
         listEl.appendChild(card);
     });
 }
 
+function openEditTipModal(id) {
+    const tip = db.tips.find(t => t.id === id);
+    if (!tip) return;
+    
+    document.getElementById("form-tip").reset();
+    document.getElementById("tip-id").value = tip.id;
+    document.getElementById("tip-category").value = tip.category;
+    document.getElementById("tip-title").value = tip.title;
+    document.getElementById("tip-content").value = tip.content;
+    
+    document.getElementById("tip-modal-title").textContent = "Editar Tip";
+    document.getElementById("modal-tip").showModal();
+}
+
 function handleTipSubmit(e) {
+    const id = document.getElementById("tip-id").value;
     const title = document.getElementById("tip-title").value;
     const content = document.getElementById("tip-content").value;
     const category = document.getElementById("tip-category").value;
     
-    const newTip = {
-        id: generateUUID(),
-        category,
-        title,
-        content,
-        author: currentUser,
-        updated_at: new Date().toISOString()
-    };
+    if (id) {
+        const tipIdx = db.tips.findIndex(t => t.id === id);
+        if (tipIdx !== -1) {
+            db.tips[tipIdx].title = title;
+            db.tips[tipIdx].content = content;
+            db.tips[tipIdx].category = category;
+            db.tips[tipIdx].updated_at = new Date().toISOString();
+        }
+    } else {
+        const newTip = {
+            id: generateUUID(),
+            category,
+            title,
+            content,
+            author: currentUser,
+            updated_at: new Date().toISOString()
+        };
+        
+        db.tips.push(newTip);
+    }
     
-    db.tips.push(newTip);
     saveLocal("tips");
     
-    // Cambiar filtro a la categoría cargada
     document.querySelectorAll(".filter-chip").forEach(c => {
         c.classList.remove("active");
         if (c.getAttribute("data-cat") === category) c.classList.add("active");
@@ -941,9 +1008,14 @@ function renderFlightsList() {
                 </button>
             </div>
             <div class="flight-card-footer">
-                <button class="btn-delete-card" data-action="delete" title="Eliminar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                </button>
+                <div class="card-action-buttons">
+                    <button class="btn-edit-card" data-action="edit" title="Editar">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="btn-delete-card" data-action="delete" title="Eliminar">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
             </div>
         `;
         
@@ -953,12 +1025,33 @@ function renderFlightsList() {
             alert("Código de reserva copiado al portapapeles! ✈️");
         });
         
+        card.querySelector('[data-action="edit"]').addEventListener("click", () => openEditFlightModal(flight.id));
         card.querySelector('[data-action="delete"]').addEventListener("click", () => deleteFlight(flight.id));
         listEl.appendChild(card);
     });
 }
 
+function openEditFlightModal(id) {
+    const flight = db.flights.find(f => f.id === id);
+    if (!flight) return;
+    
+    document.getElementById("form-flight").reset();
+    document.getElementById("flight-id").value = flight.id;
+    document.getElementById("flight-number").value = flight.flight_number;
+    document.getElementById("flight-airline").value = flight.airline;
+    document.getElementById("flight-dep-apt").value = flight.departure_airport;
+    document.getElementById("flight-arr-apt").value = flight.arrival_airport;
+    document.getElementById("flight-dep-time").value = flight.departure_time;
+    document.getElementById("flight-arr-time").value = flight.arrival_time;
+    document.getElementById("flight-date").value = flight.date;
+    document.getElementById("flight-code").value = flight.code;
+    
+    document.getElementById("flight-modal-title").textContent = "Editar Vuelo";
+    document.getElementById("modal-flight").showModal();
+}
+
 function handleFlightSubmit(e) {
+    const id = document.getElementById("flight-id").value;
     const flight_number = document.getElementById("flight-number").value.toUpperCase();
     const airline = document.getElementById("flight-airline").value;
     const departure_airport = document.getElementById("flight-dep-apt").value.toUpperCase();
@@ -968,20 +1061,36 @@ function handleFlightSubmit(e) {
     const date = document.getElementById("flight-date").value;
     const code = document.getElementById("flight-code").value.toUpperCase();
     
-    const newFlight = {
-        id: generateUUID(),
-        flight_number,
-        airline,
-        departure_airport,
-        arrival_airport,
-        departure_time,
-        arrival_time,
-        date,
-        code,
-        updated_at: new Date().toISOString()
-    };
+    if (id) {
+        const flightIdx = db.flights.findIndex(f => f.id === id);
+        if (flightIdx !== -1) {
+            db.flights[flightIdx].flight_number = flight_number;
+            db.flights[flightIdx].airline = airline;
+            db.flights[flightIdx].departure_airport = departure_airport;
+            db.flights[flightIdx].arrival_airport = arrival_airport;
+            db.flights[flightIdx].departure_time = departure_time;
+            db.flights[flightIdx].arrival_time = arrival_time;
+            db.flights[flightIdx].date = date;
+            db.flights[flightIdx].code = code;
+            db.flights[flightIdx].updated_at = new Date().toISOString();
+        }
+    } else {
+        const newFlight = {
+            id: generateUUID(),
+            flight_number,
+            airline,
+            departure_airport,
+            arrival_airport,
+            departure_time,
+            arrival_time,
+            date,
+            code,
+            updated_at: new Date().toISOString()
+        };
+        
+        db.flights.push(newFlight);
+    }
     
-    db.flights.push(newFlight);
     saveLocal("flights");
     renderFlightsList();
 }
@@ -1028,34 +1137,65 @@ function renderSensitiveItems() {
         card.innerHTML = `
             <div class="sensitive-item-card-header">
                 <h4>${item.title}</h4>
-                <button class="btn-delete-card" data-action="delete" title="Eliminar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                </button>
+                <div class="card-action-buttons">
+                    <button class="btn-edit-card" data-action="edit" title="Editar">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="btn-delete-card" data-action="delete" title="Eliminar">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
             </div>
             <pre>${item.content}</pre>
         `;
         
+        card.querySelector('[data-action="edit"]').addEventListener("click", () => openEditSensitiveModal(item.id));
         card.querySelector('[data-action="delete"]').addEventListener("click", () => deleteSensitiveItem(item.id));
         listEl.appendChild(card);
     });
 }
 
+function openEditSensitiveModal(id) {
+    const item = db.sensible.find(s => s.id === id);
+    if (!item) return;
+    
+    document.getElementById("form-sensitive").reset();
+    document.getElementById("sensitive-id").value = item.id;
+    document.getElementById("sensitive-category").value = item.category;
+    document.getElementById("sensitive-title").value = item.title;
+    document.getElementById("sensitive-content").value = item.content;
+    
+    document.getElementById("sensitive-modal-title").textContent = `Editar Registro: ${item.category}`;
+    document.getElementById("modal-sensitive").showModal();
+}
+
 function handleSensitiveSubmit(e) {
+    const id = document.getElementById("sensitive-id").value;
     const title = document.getElementById("sensitive-title").value;
     const content = document.getElementById("sensitive-content").value;
     const category = document.getElementById("sensitive-category").value;
     
-    const newItem = {
-        id: generateUUID(),
-        category,
-        title,
-        content,
-        updated_at: new Date().toISOString()
-    };
+    if (id) {
+        const itemIdx = db.sensible.findIndex(s => s.id === id);
+        if (itemIdx !== -1) {
+            db.sensible[itemIdx].title = title;
+            db.sensible[itemIdx].content = content;
+            db.sensible[itemIdx].category = category;
+            db.sensible[itemIdx].updated_at = new Date().toISOString();
+        }
+    } else {
+        const newItem = {
+            id: generateUUID(),
+            category,
+            title,
+            content,
+            updated_at: new Date().toISOString()
+        };
+        
+        db.sensible.push(newItem);
+    }
     
-    db.sensible.push(newItem);
     saveLocal("sensible");
-    
     renderSensitiveItems();
     updateSensitiveCounters();
 }

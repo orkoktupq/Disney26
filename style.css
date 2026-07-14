@@ -807,6 +807,26 @@ body {
     opacity: 1;
 }
 
+.btn-edit-card {
+    background: none;
+    border: none;
+    color: #0a84ff;
+    opacity: 0.45;
+    cursor: pointer;
+    padding: 4px;
+    transition: var(--transition);
+}
+
+.btn-edit-card:hover, .btn-edit-card:active {
+    opacity: 1;
+}
+
+.card-action-buttons {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
 /* Espaciador de Caminata/Distancia (Timeline) */
 .timeline-walk-divider {
     display: flex;
