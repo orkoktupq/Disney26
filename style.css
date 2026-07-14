@@ -1,0 +1,1350 @@
+/* Disney & Universal Itinerary 2026 - CSS Stylesheet */
+/* Apple Design System & Glassmorphism */
+
+:root {
+    /* Light Mode Variables */
+    --bg-color: #f2f2f7;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --card-border: rgba(0, 0, 0, 0.08);
+    --text-primary: #1c1c1e;
+    --text-secondary: #8e8e93;
+    --accent-color: #007aff;
+    --accent-color-rgb: 0, 122, 255;
+    --danger-color: #ff3b30;
+    --success-color: #34c759;
+    --warning-color: #ff9500;
+    --glass-blur: blur(20px);
+    
+    --theme-gradient: linear-gradient(135deg, #e5b2ca 0%, #7d9ebd 100%);
+    --lock-bg: linear-gradient(180deg, #1d1b26 0%, #2f2a4a 100%);
+    --header-bg: rgba(242, 242, 247, 0.8);
+    
+    --avatar-j-bg: #5ac8fa;
+    --avatar-s-bg: #ff2d55;
+    --shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Dark Mode Variables */
+        --bg-color: #000000;
+        --card-bg: rgba(28, 28, 30, 0.7);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --text-primary: #ffffff;
+        --text-secondary: #aeaeb2;
+        --accent-color: #0a84ff;
+        --accent-color-rgb: 10, 132, 255;
+        --danger-color: #ff453a;
+        --success-color: #30d158;
+        --warning-color: #ff9f0a;
+        
+        --theme-gradient: linear-gradient(135deg, #3a223f 0%, #1e354a 100%);
+        --lock-bg: linear-gradient(180deg, #0b090f 0%, #171524 100%);
+        --header-bg: rgba(0, 0, 0, 0.8);
+        
+        --shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background-color: #1c1c1e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    color: var(--text-primary);
+}
+
+/* --- Marco de Teléfono (Para pantallas de escritorio) --- */
+.phone-frame {
+    width: 440px; /* iPhone 17 Pro Max scale */
+    height: 92vh;
+    max-height: 956px;
+    background-color: var(--bg-color);
+    border-radius: 48px;
+    border: 12px solid #222222;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Muesca del Teléfono (Notch) */
+.phone-notch {
+    width: 120px;
+    height: 30px;
+    background-color: #222;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    z-index: 1000;
+}
+
+/* Responsivo para móviles reales: se expande a pantalla completa */
+@media (max-width: 600px) {
+    body {
+        background-color: var(--bg-color);
+    }
+    .phone-frame {
+        width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+    }
+    .phone-notch {
+        display: none; /* Ocultar en móviles reales */
+    }
+}
+
+/* --- Estructura de Pantallas (Screens) --- */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(30px);
+}
+
+.screen.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* --- PANTALLA DE BLOQUEO (Lock Screen) --- */
+#lock-screen {
+    background: var(--lock-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 60px 24px 80px 24px;
+    text-align: center;
+    z-index: 50;
+}
+
+.lock-screen-header {
+    margin-top: 20px;
+}
+
+.lock-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.lock-time {
+    font-size: 64px;
+    font-weight: 300;
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.lock-date {
+    font-size: 18px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 4px;
+}
+
+.lock-profile-container {
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.lock-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 24px;
+    opacity: 0.9;
+}
+
+.profiles {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.profile-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    outline: none;
+    transition: transform 0.2s ease;
+}
+
+.profile-btn:active {
+    transform: scale(0.92);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    font-weight: 600;
+    color: #ffffff;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    margin-bottom: 12px;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+}
+
+.avatar-juanma {
+    background: linear-gradient(135deg, #1ad6fd 0%, #1d62f0 100%);
+}
+
+.avatar-sofi {
+    background: linear-gradient(135deg, #ff2d55 0%, #ff6b8b 100%);
+}
+
+.profile-name {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* --- TECLADO DE CÓDIGO (Passcode keypad) --- */
+.passcode-container {
+    width: 100%;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    bottom: 60px;
+    background: rgba(20, 20, 30, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: 30px;
+    padding: 24px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    z-index: 60;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.passcode-container.hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.passcode-prompt {
+    color: #ffffff;
+    font-size: 15px;
+    margin-bottom: 20px;
+}
+
+.passcode-dots {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.passcode-dots .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid #ffffff;
+    transition: background-color 0.15s ease;
+}
+
+.passcode-dots .dot.filled {
+    background-color: #ffffff;
+}
+
+.passcode-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+
+.keypad-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    transition: background-color 0.1s ease;
+}
+
+.keypad-btn:active {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.cancel-btn, .delete-btn {
+    background-color: transparent;
+    font-size: 14px;
+}
+
+.cancel-btn:active, .delete-btn:active {
+    background-color: transparent;
+    opacity: 0.6;
+}
+
+/* Efecto de sacudida por error */
+.shake {
+    animation: shakeEffect 0.4s ease-in-out;
+}
+
+@keyframes shakeEffect {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+
+/* --- APLICACIÓN PRINCIPAL (App Container) --- */
+.app-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: var(--bg-color);
+}
+
+/* Cabecera Principal */
+.app-header {
+    background-color: var(--header-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--card-border);
+    padding: 44px 20px 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.header-user {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.header-widgets {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.weather-widget {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sync-indicator {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.sync-dot.green { background-color: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+.sync-dot.orange { background-color: var(--warning-color); box-shadow: 0 0 6px var(--warning-color); }
+.sync-dot.red { background-color: var(--danger-color); box-shadow: 0 0 6px var(--danger-color); }
+
+.header-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-bottom h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Área de contenido */
+.app-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px 90px 16px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* --- NAVEGACIÓN TAB BAR INFERIOR --- */
+.app-tab-bar {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-radius: 24px;
+    border: 1px solid var(--card-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    z-index: 200;
+}
+
+@media (prefers-color-scheme: dark) {
+    .app-tab-bar {
+        background: rgba(28, 28, 30, 0.85);
+    }
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+    height: 100%;
+    outline: none;
+    gap: 4px;
+    transition: var(--transition);
+}
+
+.tab-btn svg {
+    stroke-width: 2;
+    transition: var(--transition);
+}
+
+.tab-btn.active {
+    color: var(--accent-color);
+}
+
+.tab-btn.active svg {
+    transform: scale(1.1);
+    color: var(--accent-color);
+}
+
+/* --- BOTONES Y COMPONENTES APPLE --- */
+.apple-btn-primary {
+    background-color: var(--accent-color);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    outline: none;
+}
+
+.apple-btn-primary:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+}
+
+.apple-btn-secondary {
+    background-color: rgba(var(--accent-color-rgb), 0.1);
+    color: var(--accent-color);
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    outline: none;
+}
+
+.apple-btn-secondary:active {
+    transform: scale(0.97);
+}
+
+.btn-small {
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.apple-select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 500;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.apple-select-small {
+    padding: 6px 24px 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+}
+
+.apple-input, .apple-textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.apple-input:focus, .apple-textarea:focus {
+    border-color: var(--accent-color);
+}
+
+/* Vistas de Pestañas */
+.app-view {
+    display: none;
+    flex-direction: column;
+    animation: fadeInView 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-view.active {
+    display: flex;
+}
+
+@keyframes fadeInView {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- TAB: CALENDARIO --- */
+.itinerary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.calendar-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.calendar-card:active {
+    transform: scale(0.98);
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+@media (prefers-color-scheme: dark) {
+    .calendar-card:active {
+        background-color: rgba(44, 44, 46, 0.9);
+    }
+}
+
+.card-date-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(var(--accent-color-rgb), 0.1);
+    color: var(--accent-color);
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.card-date-badge .date-day {
+    font-size: 18px;
+    line-height: 1.1;
+}
+
+.card-date-badge .date-month {
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.card-info {
+    flex: 1;
+    margin-left: 14px;
+}
+
+.card-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.card-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.park-badge {
+    background-color: rgba(142, 142, 147, 0.12);
+    color: var(--text-primary);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.park-badge.disney {
+    background-color: rgba(255, 45, 85, 0.12);
+    color: #ff2d55;
+}
+
+.park-badge.universal {
+    background-color: rgba(88, 86, 214, 0.12);
+    color: #5856d6;
+}
+
+.arrow-icon {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+/* --- TAB: PARQUES --- */
+.park-selector-wrapper {
+    margin-bottom: 16px;
+}
+
+.park-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+}
+
+.park-day-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.attraction-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.attraction-header-actions h3 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.attractions-list-wrapper {
+    position: relative;
+}
+
+.attractions-list {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Tarjeta de Atracción */
+.attraction-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: var(--shadow);
+    position: relative;
+    transition: var(--transition);
+}
+
+.attraction-card.completed {
+    opacity: 0.6;
+}
+
+.attraction-checkbox {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--text-secondary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.attraction-card.completed .attraction-checkbox {
+    border-color: var(--success-color);
+    background-color: var(--success-color);
+    color: white;
+}
+
+.attraction-checkbox svg {
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.attraction-card.completed .attraction-checkbox svg {
+    opacity: 1;
+}
+
+.attraction-content {
+    flex: 1;
+}
+
+.attraction-name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.attraction-title {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.attraction-card.completed .attraction-title {
+    text-decoration: line-through;
+}
+
+.attraction-land-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background-color: rgba(142, 142, 147, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.attraction-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.btn-delete-card {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    opacity: 0.4;
+    cursor: pointer;
+    padding: 4px;
+    transition: var(--transition);
+}
+
+.btn-delete-card:hover, .btn-delete-card:active {
+    opacity: 1;
+}
+
+/* Espaciador de Caminata/Distancia (Timeline) */
+.timeline-walk-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 8px 0;
+    margin-left: 12px;
+    align-self: flex-start;
+}
+
+.walk-line {
+    width: 2px;
+    height: 24px;
+    border-left: 2px dotted var(--text-secondary);
+    opacity: 0.3;
+}
+
+.walk-badge {
+    background-color: var(--bg-color);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+
+.walk-badge.warning {
+    color: var(--warning-color);
+    border-color: rgba(255, 149, 0, 0.3);
+    background-color: rgba(255, 149, 0, 0.05);
+}
+
+/* --- TAB: TIPS --- */
+.tips-filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.filter-chip {
+    padding: 6px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.filter-chip.active {
+    background-color: var(--accent-color);
+    color: #ffffff;
+    border-color: var(--accent-color);
+}
+
+.tips-action-bar {
+    margin-bottom: 16px;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tip-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    position: relative;
+}
+
+.tip-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.tip-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.tip-badge.disney { background-color: rgba(255, 45, 85, 0.1); color: #ff2d55; }
+.tip-badge.universal { background-color: rgba(88, 86, 214, 0.1); color: #5856d6; }
+.tip-badge.general { background-color: rgba(142, 142, 147, 0.15); color: var(--text-primary); }
+
+.tip-author-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+
+.tip-author-badge.juanma { background-color: rgba(90, 200, 250, 0.12); color: #007aff; }
+.tip-author-badge.sofi { background-color: rgba(255, 45, 85, 0.12); color: #ff2d55; }
+
+.tip-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.tip-card p {
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-primary);
+    white-space: pre-line;
+}
+
+.tip-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* --- TAB: VUELOS --- */
+.flights-action-bar {
+    margin-bottom: 16px;
+}
+
+.flights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.flight-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+
+.flight-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.flight-airline {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.flight-number-badge {
+    background-color: rgba(var(--accent-color-rgb), 0.15);
+    color: var(--accent-color);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.flight-route-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.airport-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.airport-code {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.flight-time {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.flight-duration-line {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 12px;
+    position: relative;
+}
+
+.duration-airplane {
+    transform: rotate(90deg);
+    color: var(--accent-color);
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.duration-line {
+    width: 100%;
+    height: 2px;
+    background-color: var(--card-border);
+    position: relative;
+}
+
+.duration-line::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    position: absolute;
+    right: 0;
+    top: -2px;
+}
+
+.flight-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(142, 142, 147, 0.08);
+    border-radius: 10px;
+    padding: 8px 12px;
+}
+
+.flight-date-txt {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.flight-code-btn {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.flight-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* --- TAB: SEGURIDAD (Datos Sensibles) --- */
+.documents-header {
+    margin-bottom: 20px;
+}
+
+.documents-subheader {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.sensitive-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sensitive-cat-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.sensitive-cat-card:active {
+    transform: scale(0.98);
+}
+
+.cat-icon {
+    font-size: 26px;
+    margin-right: 16px;
+}
+
+.cat-info h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.cat-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Panel Deslizable de Datos Sensibles */
+.sensitive-detail-panel {
+    position: absolute;
+    top: 100px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 100px);
+    background-color: var(--bg-color);
+    z-index: 150;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sensitive-detail-panel.hidden {
+    transform: translateX(100%);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    color: var(--accent-color);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    gap: 4px;
+}
+
+.sensitive-items-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 80px;
+}
+
+.sensitive-item-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+
+.sensitive-item-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.sensitive-item-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.sensitive-item-card pre {
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    font-family: inherit;
+    color: var(--text-primary);
+}
+
+/* --- MODALES DIÁLOGOS NATIVOS --- */
+.apple-dialog {
+    border: none;
+    background-color: var(--card-bg);
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    border-radius: 30px;
+    width: 90%;
+    max-width: 380px;
+    margin: auto;
+    padding: 24px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    outline: none;
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.apple-dialog[open] {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.apple-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+@media (prefers-color-scheme: dark) {
+    .apple-dialog {
+        background-color: rgba(30, 30, 32, 0.85);
+    }
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.dialog-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.btn-close-dialog {
+    background: rgba(142, 142, 147, 0.15);
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+}
+
+.dialog-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-group-row .form-group {
+    flex: 1;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.row-checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.row-checkbox label {
+    text-transform: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.form-actions button {
+    width: 100%;
+}
+
+.hidden {
+    display: none !important;
+}

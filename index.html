@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Disney & Universal Itinerario 2026</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Marco del Teléfono (Solo visible en pantallas grandes de Escritorio) -->
+    <div class="phone-frame">
+        <div class="phone-notch"></div>
+        
+        <!-- PANTALLA DE BLOQUEO (Lock Screen) -->
+        <div id="lock-screen" class="screen active">
+            <div class="lock-screen-header">
+                <div class="lock-icon">🔒</div>
+                <div class="lock-time" id="lock-time">08:15</div>
+                <div class="lock-date" id="lock-date">Martes, 14 de Julio</div>
+            </div>
+            
+            <div class="lock-profile-container">
+                <h2 class="lock-title">¿Quién está viajando?</h2>
+                <div class="profiles">
+                    <button class="profile-btn" data-user="Juanma">
+                        <div class="profile-avatar avatar-juanma">JM</div>
+                        <span class="profile-name">Juanma</span>
+                    </button>
+                    <button class="profile-btn" data-user="Sofi">
+                        <div class="profile-avatar avatar-sofi">SF</div>
+                        <span class="profile-name">Sofi</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Modal de Ingreso de Código (Passcode) -->
+            <div id="passcode-container" class="passcode-container hidden">
+                <p class="passcode-prompt">Ingresá el código para <span id="selected-user-name"></span></p>
+                <div class="passcode-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="passcode-keypad">
+                    <button class="keypad-btn" data-val="1">1</button>
+                    <button class="keypad-btn" data-val="2">2</button>
+                    <button class="keypad-btn" data-val="3">3</button>
+                    <button class="keypad-btn" data-val="4">4</button>
+                    <button class="keypad-btn" data-val="5">5</button>
+                    <button class="keypad-btn" data-val="6">6</button>
+                    <button class="keypad-btn" data-val="7">7</button>
+                    <button class="keypad-btn" data-val="8">8</button>
+                    <button class="keypad-btn" data-val="9">9</button>
+                    <button class="keypad-btn cancel-btn" data-val="cancel">Atrás</button>
+                    <button class="keypad-btn" data-val="0">0</button>
+                    <button class="keypad-btn delete-btn" data-val="delete">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- APLICACIÓN PRINCIPAL (Cargada después del desbloqueo) -->
+        <div id="app-container" class="app-container hidden">
+            
+            <!-- Cabecera de la Aplicación -->
+            <header class="app-header">
+                <div class="header-top">
+                    <div class="header-user">
+                        Hola, <span id="current-user-name">Juanma</span> 👋
+                    </div>
+                    <div class="header-widgets">
+                        <!-- Widget de Clima de Orlando siempre visible -->
+                        <div class="weather-widget" id="weather-widget" title="Clima de Orlando">
+                            <span class="weather-icon">☀️</span>
+                            <span class="weather-temp">--°C</span>
+                        </div>
+                        <!-- Indicador de estado de la sincronización -->
+                        <div class="sync-indicator" id="sync-indicator" title="Sincronizado con Supabase">
+                            <div class="sync-dot green"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-bottom">
+                    <h1 id="view-title">Calendario</h1>
+                    <div id="header-action-container"></div>
+                </div>
+            </header>
+
+            <!-- CONTENEDOR DE PANTALLAS (Views) -->
+            <main class="app-content">
+                
+                <!-- Pestaña 1: CALENDARIO -->
+                <section id="view-calendario" class="app-view active">
+                    <div class="itinerary-list" id="calendar-list">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </section>
+
+                <!-- Pestaña 2: PARQUES (Disney & Universal) -->
+                <section id="view-parques" class="app-view">
+                    <!-- Selector de Parque -->
+                    <div class="park-selector-wrapper">
+                        <select id="park-select" class="apple-select">
+                            <option value="Magic Kingdom">Magic Kingdom 🏰</option>
+                            <option value="Epcot">Epcot 🚀</option>
+                            <option value="Hollywood Studios">Hollywood Studios 🎬</option>
+                            <option value="Animal Kingdom">Animal Kingdom 🌳</option>
+                            <option value="Universal Studios">Universal Studios 🎬</option>
+                            <option value="Islands of Adventure">Islands of Adventure 🦖</option>
+                            <option value="Volcano Bay">Volcano Bay 🌊</option>
+                        </select>
+                    </div>
+
+                    <!-- Detalle del Parque Seleccionado -->
+                    <div class="park-details-container">
+                        <div class="park-day-header">
+                            <span class="park-day-label">Día asignado:</span>
+                            <select id="park-date-select" class="apple-select-small">
+                                <option value="">No asignado</option>
+                                <!-- Generado dinámicamente -->
+                            </select>
+                        </div>
+                        
+                        <div class="attraction-header-actions">
+                            <h3>Atracciones a Visitar</h3>
+                            <button class="apple-btn-secondary btn-small" id="btn-add-attraction-modal">
+                                <span>+ Agregar</span>
+                            </button>
+                        </div>
+
+                        <!-- Lista de Atracciones con Estimador de Caminata -->
+                        <div class="attractions-list-wrapper">
+                            <div class="attractions-list" id="attractions-list">
+                                <!-- Generado dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pestaña 3: TIPS (Disney & Universal) -->
+                <section id="view-tips" class="app-view">
+                    <div class="tips-filter-bar">
+                        <button class="filter-chip active" data-cat="all">Todos</button>
+                        <button class="filter-chip" data-cat="Disney">Disney</button>
+                        <button class="filter-chip" data-cat="Universal">Universal</button>
+                        <button class="filter-chip" data-cat="General">General</button>
+                    </div>
+                    <div class="tips-action-bar">
+                        <button class="apple-btn-primary btn-full" id="btn-add-tip-modal">+ Nuevo Tip</button>
+                    </div>
+                    <div class="tips-list" id="tips-list">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </section>
+
+                <!-- Pestaña 4: VUELOS -->
+                <section id="view-vuelos" class="app-view">
+                    <div class="flights-action-bar">
+                        <button class="apple-btn-primary btn-full" id="btn-add-flight-modal">+ Registrar Vuelo</button>
+                    </div>
+                    <div class="flights-list" id="flights-list">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </section>
+
+                <!-- Pestaña 5: DATOS SENSIBLES (Pasaportes, reservas, etc) -->
+                <section id="view-sensible" class="app-view">
+                    <div class="documents-header">
+                        <p class="documents-subheader">Información importante, números de pasaporte y reservas seguras localmente.</p>
+                    </div>
+                    <div class="sensitive-categories">
+                        <button class="sensitive-cat-card" data-cat="Pasaporte">
+                            <div class="cat-icon">🪪</div>
+                            <div class="cat-info">
+                                <h4>Pasaportes</h4>
+                                <p id="cnt-pasaporte">0 documentos</p>
+                            </div>
+                        </button>
+                        <button class="sensitive-cat-card" data-cat="Hotel">
+                            <div class="cat-icon">🏨</div>
+                            <div class="cat-info">
+                                <h4>Hoteles</h4>
+                                <p id="cnt-hotel">0 reservas</p>
+                            </div>
+                        </button>
+                        <button class="sensitive-cat-card" data-cat="Auto">
+                            <div class="cat-icon">🚗</div>
+                            <div class="cat-info">
+                                <h4>Alquiler de Auto</h4>
+                                <p id="cnt-auto">0 reservas</p>
+                            </div>
+                        </button>
+                        <button class="sensitive-cat-card" data-cat="Seguro">
+                            <div class="cat-icon">🏥</div>
+                            <div class="cat-info">
+                                <h4>Asistencia Médica</h4>
+                                <p id="cnt-seguro">0 pólizas</p>
+                            </div>
+                        </button>
+                        <button class="sensitive-cat-card" data-cat="Otro">
+                            <div class="cat-icon">📁</div>
+                            <div class="cat-info">
+                                <h4>Otros Datos</h4>
+                                <p id="cnt-otro">0 registros</p>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Detalle de la categoría seleccionada (Slide down panel) -->
+                    <div id="sensitive-detail-panel" class="sensitive-detail-panel hidden">
+                        <div class="panel-header">
+                            <button id="btn-close-sensitive-panel" class="btn-back">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                <span id="sensitive-panel-title">Pasaportes</span>
+                            </button>
+                            <button class="apple-btn-secondary btn-small" id="btn-add-sensitive-item">
+                                <span>+ Agregar</span>
+                            </button>
+                        </div>
+                        <div class="sensitive-items-list" id="sensitive-items-list">
+                            <!-- Generado dinámicamente -->
+                        </div>
+                    </div>
+                </section>
+                
+            </main>
+
+            <!-- BARRA DE NAVEGACIÓN INFERIOR (Floating Tab Bar) -->
+            <nav class="app-tab-bar">
+                <button class="tab-btn active" data-tab="calendario">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Itinerario</span>
+                </button>
+                <button class="tab-btn" data-tab="parques">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 6v12"></path><path d="M6 12h12"></path></svg>
+                    <span>Parques</span>
+                </button>
+                <button class="tab-btn" data-tab="tips">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.73a3 3 0 0 0-.544 1.728H9.828a3 3 0 0 0-.544-1.728l-.548-.73z"></path></svg>
+                    <span>Tips</span>
+                </button>
+                <button class="tab-btn" data-tab="vuelos">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5S19 4 17.5 5.5L14 9 5.8 7.2c-.8-.2-1.6.4-1.6 1.2 0 .4.2.8.5 1l7.8 4.6-3.7 3.7-2.3-.5c-.3-.1-.7.1-.9.4l-.8.8c-.3.3-.2.8.2.9l3.5 1.5 1.5 3.5c.1.4.6.5.9.2l.8-.8c.3-.2.5-.6.4-.9l-.5-2.3 3.7-3.7 4.6 7.8c.2.3.6.5 1 .5.8 0 1.4-.8 1.2-1.6z"></path></svg>
+                    <span>Vuelos</span>
+                </button>
+                <button class="tab-btn" data-tab="sensible">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <span>Seguro</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- MODAL DE DIÁLOGO: AGREGAR / EDITAR ITINERARIO -->
+    <dialog id="modal-itinerary" class="apple-dialog">
+        <div class="dialog-header">
+            <h2 id="itinerary-modal-title">Editar Día</h2>
+            <button class="btn-close-dialog" commandfor="modal-itinerary" command="close">✕</button>
+        </div>
+        <form id="form-itinerary" method="dialog" class="dialog-form">
+            <input type="hidden" id="itinerary-id">
+            <div class="form-group">
+                <label for="itinerary-title">Título del Día</label>
+                <input type="text" id="itinerary-title" class="apple-input" placeholder="Ej: Magic Kingdom 🏰" required>
+            </div>
+            <div class="form-group">
+                <label for="itinerary-notes">Notas / Agenda</label>
+                <textarea id="itinerary-notes" class="apple-textarea" placeholder="¿Qué planes hay para hoy?..." rows="4"></textarea>
+            </div>
+            <div class="form-group row-checkbox">
+                <input type="checkbox" id="itinerary-is-park">
+                <label for="itinerary-is-park">¿Es día de parque temático?</label>
+            </div>
+            <div class="form-group hidden" id="itinerary-park-select-group">
+                <label for="itinerary-park-name">Seleccionar Parque</label>
+                <select id="itinerary-park-name" class="apple-select">
+                    <option value="Magic Kingdom">Magic Kingdom 🏰</option>
+                    <option value="Epcot">Epcot 🚀</option>
+                    <option value="Hollywood Studios">Hollywood Studios 🎬</option>
+                    <option value="Animal Kingdom">Animal Kingdom 🌳</option>
+                    <option value="Universal Studios">Universal Studios 🎬</option>
+                    <option value="Islands of Adventure">Islands of Adventure 🦖</option>
+                    <option value="Volcano Bay">Volcano Bay 🌊</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- MODAL DE DIÁLOGO: AGREGAR ATRACCIÓN -->
+    <dialog id="modal-attraction" class="apple-dialog">
+        <div class="dialog-header">
+            <h2>Agregar Atracción</h2>
+            <button class="btn-close-dialog" commandfor="modal-attraction" command="close">✕</button>
+        </div>
+        <form id="form-attraction" method="dialog" class="dialog-form">
+            <input type="hidden" id="attraction-id">
+            <div class="form-group">
+                <label for="attraction-preset">Elegir Atracción Común</label>
+                <select id="attraction-preset" class="apple-select">
+                    <option value="custom">-- Atracción Personalizada --</option>
+                    <!-- Cargada dinámicamente según el parque -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="attraction-name">Nombre de la Atracción</label>
+                <input type="text" id="attraction-name" class="apple-input" placeholder="Nombre de la atracción" required>
+            </div>
+            <div class="form-group">
+                <label for="attraction-land">Área / Land</label>
+                <input type="text" id="attraction-land" class="apple-input" placeholder="Ej: Tomorrowland, Hogsmeade..." required>
+            </div>
+            <div class="form-group">
+                <label for="attraction-notes">Notas / Tips de Fila</label>
+                <textarea id="attraction-notes" class="apple-textarea" placeholder="Ej: Fila rápida a las 8 AM, guardar mochilas..." rows="2"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Agregar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- MODAL DE DIÁLOGO: TIPS -->
+    <dialog id="modal-tip" class="apple-dialog">
+        <div class="dialog-header">
+            <h2 id="tip-modal-title">Nuevo Tip</h2>
+            <button class="btn-close-dialog" commandfor="modal-tip" command="close">✕</button>
+        </div>
+        <form id="form-tip" method="dialog" class="dialog-form">
+            <input type="hidden" id="tip-id">
+            <div class="form-group">
+                <label for="tip-category">Categoría</label>
+                <select id="tip-category" class="apple-select">
+                    <option value="Disney">Disney 🏰</option>
+                    <option value="Universal">Universal 🎬</option>
+                    <option value="General">General 🌍</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="tip-title">Título del Tip</label>
+                <input type="text" id="tip-title" class="apple-input" placeholder="Ej: Fila virtual Tron" required>
+            </div>
+            <div class="form-group">
+                <label for="tip-content">Contenido del Tip</label>
+                <textarea id="tip-content" class="apple-textarea" placeholder="Escribe el consejo o tip detallado..." rows="4" required></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- MODAL DE DIÁLOGO: VUELOS -->
+    <dialog id="modal-flight" class="apple-dialog">
+        <div class="dialog-header">
+            <h2 id="flight-modal-title">Registrar Vuelo</h2>
+            <button class="btn-close-dialog" commandfor="modal-flight" command="close">✕</button>
+        </div>
+        <form id="form-flight" method="dialog" class="dialog-form">
+            <input type="hidden" id="flight-id">
+            <div class="form-group">
+                <label for="flight-number">Número de Vuelo</label>
+                <input type="text" id="flight-number" class="apple-input" placeholder="Ej: AA908" required>
+            </div>
+            <div class="form-group">
+                <label for="flight-airline">Aerolínea</label>
+                <input type="text" id="flight-airline" class="apple-input" placeholder="Ej: American Airlines" required>
+            </div>
+            <div class="form-group-row">
+                <div class="form-group">
+                    <label for="flight-dep-apt">Origen (IATA)</label>
+                    <input type="text" id="flight-dep-apt" class="apple-input" placeholder="EZE" max-length="4" required>
+                </div>
+                <div class="form-group">
+                    <label for="flight-arr-apt">Destino (IATA)</label>
+                    <input type="text" id="flight-arr-apt" class="apple-input" placeholder="MCO" max-length="4" required>
+                </div>
+            </div>
+            <div class="form-group-row">
+                <div class="form-group">
+                    <label for="flight-dep-time">Hora de Salida</label>
+                    <input type="text" id="flight-dep-time" class="apple-input" placeholder="Ej: 22:30" required>
+                </div>
+                <div class="form-group">
+                    <label for="flight-arr-time">Hora de Llegada</label>
+                    <input type="text" id="flight-arr-time" class="apple-input" placeholder="Ej: 06:45 +1" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="flight-date">Fecha</label>
+                <input type="date" id="flight-date" class="apple-input" required>
+            </div>
+            <div class="form-group">
+                <label for="flight-code">Código de Reserva</label>
+                <input type="text" id="flight-code" class="apple-input" placeholder="Ej: RESERVA_CODE" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- MODAL DE DIÁLOGO: DATOS SENSIBLES -->
+    <dialog id="modal-sensitive" class="apple-dialog">
+        <div class="dialog-header">
+            <h2 id="sensitive-modal-title">Agregar Detalle</h2>
+            <button class="btn-close-dialog" commandfor="modal-sensitive" command="close">✕</button>
+        </div>
+        <form id="form-sensitive" method="dialog" class="dialog-form">
+            <input type="hidden" id="sensitive-id">
+            <input type="hidden" id="sensitive-category">
+            <div class="form-group">
+                <label for="sensitive-title">Título del Registro</label>
+                <input type="text" id="sensitive-title" class="apple-input" placeholder="Ej: Pasaporte de Juanma, Reserva de auto..." required>
+            </div>
+            <div class="form-group">
+                <label for="sensitive-content">Detalles / Información</label>
+                <textarea id="sensitive-content" class="apple-textarea" placeholder="Escribe los números de reserva, claves, fechas de vencimiento..." rows="5" required></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Script de la App -->
+    <script src="app.js"></script>
+</body>
+</html>
