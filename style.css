@@ -1839,3 +1839,14 @@ body {
 .profile-tab-btn.active span {
     color: #ffffff !important;
 }
+
+/* Habilitar copiar y pegar / selección de textos y campos */
+input, textarea, [contenteditable] {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}
+
+.passport-detail-box, .hotel-detail-box, .auto-detail-box, .seguro-detail-box, .other-detail-box, .sensitive-item-card pre, .sensitive-item-card h4 {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}

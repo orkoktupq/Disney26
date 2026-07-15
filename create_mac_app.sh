@@ -60,7 +60,49 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNavigati
     var window: NSWindow!
     var webView: WKWebView!
 
+    func setupMenuBar() {
+        let mainMenu = NSMenu()
+        
+        // 1. Menú de la aplicación
+        let appMenuItem = NSMenuItem()
+        mainMenu.addItem(appMenuItem)
+        let appMenu = NSMenu()
+        let quitMenuItem = NSMenuItem(title: "Salir de Disney 2026", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(quitMenuItem)
+        appMenuItem.submenu = appMenu
+        
+        // 2. Menú Editar (Habilita Copiar, Pegar, Deshacer, Cortar, Seleccionar todo)
+        let editMenuItem = NSMenuItem()
+        mainMenu.addItem(editMenuItem)
+        let editMenu = NSMenu(title: "Editar")
+        
+        let undoItem = NSMenuItem(title: "Deshacer", action: Selector(("undo:")), keyEquivalent: "z")
+        editMenu.addItem(undoItem)
+        
+        let redoItem = NSMenuItem(title: "Rehacer", action: Selector(("redo:")), keyEquivalent: "Z")
+        editMenu.addItem(redoItem)
+        
+        editMenu.addItem(NSMenuItem.separator())
+        
+        let cutItem = NSMenuItem(title: "Cortar", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        editMenu.addItem(cutItem)
+        
+        let copyItem = NSMenuItem(title: "Copiar", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        editMenu.addItem(copyItem)
+        
+        let pasteItem = NSMenuItem(title: "Pegar", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        editMenu.addItem(pasteItem)
+        
+        let selectAllItem = NSMenuItem(title: "Seleccionar todo", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editMenu.addItem(selectAllItem)
+        
+        editMenuItem.submenu = editMenu
+        NSApp.mainMenu = mainMenu
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        setupMenuBar()
+        
         // Crear la ventana principal del atajo macOS
         let styleMask: NSWindow.StyleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
         window = NSWindow(
