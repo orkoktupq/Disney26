@@ -2196,36 +2196,41 @@ async function runSupabaseSync() {
             }
             
             // 2. Traer los datos más nuevos de Supabase
-            const { data: cloudData, error } = await supabaseClient
-                .from(supabaseTable)
-                .select("*");
+            try {
+                const { data: cloudData, error } = await supabaseClient
+                    .from(supabaseTable)
+                    .select("*");
+                    
+                if (error) throw error;
                 
-            if (error) throw error;
-            
-            if (cloudData && cloudData.length > 0) {
-                // Filtrar datos locales: quedarse solo con los que tienen UUID válido
-                const validLocalData = db[localKey].filter(item => isValidUUID(item.id));
-                const merged = [...validLocalData];
-                
-                cloudData.forEach(cloudRow => {
-                    const localIdx = merged.findIndex(l => l.id === cloudRow.id);
-                    if (localIdx === -1) {
-                        // Elemento no existe localmente, agregar
-                        merged.push(cloudRow);
-                    } else {
-                        // Comparar marcas de tiempo
-                        const localTime = new Date(merged[localIdx].updated_at || 0).getTime();
-                        const cloudTime = new Date(cloudRow.updated_at || 0).getTime();
-                        
-                        if (cloudTime > localTime) {
-                            // Reemplazar local por nube si la nube es más nueva
-                            merged[localIdx] = cloudRow;
+                if (cloudData && cloudData.length > 0) {
+                    // Filtrar datos locales: quedarse solo con los que tienen UUID válido
+                    const validLocalData = db[localKey].filter(item => isValidUUID(item.id));
+                    const merged = [...validLocalData];
+                    
+                    cloudData.forEach(cloudRow => {
+                        const localIdx = merged.findIndex(l => l.id === cloudRow.id);
+                        if (localIdx === -1) {
+                            // Elemento no existe localmente, agregar
+                            merged.push(cloudRow);
+                        } else {
+                            // Comparar marcas de tiempo
+                            const localTime = new Date(merged[localIdx].updated_at || 0).getTime();
+                            const cloudTime = new Date(cloudRow.updated_at || 0).getTime();
+                            
+                            if (cloudTime > localTime) {
+                                // Reemplazar local por nube si la nube es más nueva
+                                merged[localIdx] = cloudRow;
+                            }
                         }
-                    }
-                });
-                
-                db[localKey] = merged;
-                localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(merged));
+                    });
+                    
+                    db[localKey] = merged;
+                    localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(merged));
+                }
+            } catch (tableErr) {
+                console.warn(`Error al sincronizar la tabla ${supabaseTable}:`, tableErr.message || tableErr);
+                // No propagamos para que el resto de las tablas válidas sí se sincronicen
             }
         }
         
