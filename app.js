@@ -1910,7 +1910,26 @@ function getFlagEmoji(countryOrNationality) {
         "méxico": "🇲🇽",
         "mexico": "🇲🇽",
         "mexicano": "🇲🇽",
-        "mexicana": "🇲🇽"
+        "mexicana": "🇲🇽",
+        "suiza": "🇨🇭",
+        "suizo": "🇨🇭",
+        "alemania": "🇩🇪",
+        "alemán": "🇩🇪",
+        "alemana": "🇩🇪",
+        "francia": "🇫🇷",
+        "francés": "🇫🇷",
+        "francesa": "🇫🇷",
+        "reino unido": "🇬🇧",
+        "uk": "🇬🇧",
+        "británico": "🇬🇧",
+        "portugal": "🇵🇹",
+        "portugués": "🇵🇹",
+        "canadá": "🇨🇦",
+        "canadiense": "🇨🇦",
+        "bolivia": "🇧🇴",
+        "perú": "🇵🇪",
+        "ecuador": "🇪🇨",
+        "venezuela": "🇻🇪"
     };
     
     if (flagMap[clean]) return flagMap[clean];
@@ -1924,7 +1943,17 @@ function getFlagEmoji(countryOrNationality) {
     if (clean.includes("colo")) return "🇨🇴";
     if (clean.includes("para")) return "🇵🇾";
     if (clean.includes("mexi")) return "🇲🇽";
-    if (clean.includes("estad") || clean.includes("eeuu") || clean.includes("usa") || clean.includes("unit")) return "🇺🇸";
+    if (clean.includes("estad") || clean.includes("eeuu") || clean.includes("usa") || clean.includes("united states") || clean.includes("america")) return "🇺🇸";
+    if (clean.includes("suiz")) return "🇨🇭";
+    if (clean.includes("alem")) return "🇩🇪";
+    if (clean.includes("fran")) return "🇫🇷";
+    if (clean.includes("portu")) return "🇵🇹";
+    if (clean.includes("cana")) return "🇨🇦";
+    if (clean.includes("boli")) return "🇧🇴";
+    if (clean.includes("peru")) return "🇵🇪";
+    if (clean.includes("ecua")) return "🇪🇨";
+    if (clean.includes("vene")) return "🇻🇪";
+    if (clean.includes("uk") || clean.includes("gb") || clean.includes("brit") || clean.includes("ingl")) return "🇬🇧";
     
     return "";
 }
