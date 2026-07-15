@@ -162,6 +162,22 @@ const PARK_PRESETS = {
         { name: "Ko'okiri Body Plunge", land: "Rainforest Village" },
         { name: "Honu ika Moana", land: "River Village" },
         { name: "Waturi Beach", land: "Wave Pool" }
+    ],
+    "Typhoon Lagoon": [
+        { name: "Miss Tilly (Iconic Ship)", land: "Mount Mayday" },
+        { name: "Crush 'n' Gusher", land: "Hideaway Bay" },
+        { name: "Castaway Creek (Lazy River)", land: "Lasy River" },
+        { name: "Typhoon Lagoon Surf Pool", land: "Mount Mayday" },
+        { name: "Gangplank Falls", land: "Mount Mayday" },
+        { name: "Humunga Kowabunga", land: "Mount Mayday" }
+    ],
+    "Blizzard Beach": [
+        { name: "Summit Plummet", land: "Green Slope" },
+        { name: "Teamboat Springs", land: "Red Slope" },
+        { name: "Runoff Rapids", land: "Red Slope" },
+        { name: "Melt-Away Bay", land: "Green Slope" },
+        { name: "Cross Country Creek (Lazy River)", land: "Lazy River" },
+        { name: "Toboggan Racers", land: "Purple Slope" }
     ]
 };
 
@@ -207,6 +223,17 @@ const PARK_LANDS_DISTANCE = {
         "World Expo": { "Diagon Alley": 2, "Springfield": 2, "San Francisco": 4, "New York": 6, "Production Central": 8 },
         "Springfield": { "World Expo": 2, "Diagon Alley": 4, "Hollywood": 3, "Production Central": 9, "San Francisco": 6 },
         "Hollywood": { "Production Central": 3, "New York": 3, "Springfield": 3, "San Francisco": 5, "Diagon Alley": 6 }
+    },
+    "Typhoon Lagoon": {
+        "Mount Mayday": { "Hideaway Bay": 3, "Lasy River": 2 },
+        "Hideaway Bay": { "Mount Mayday": 3, "Lasy River": 3 },
+        "Lasy River": { "Mount Mayday": 2, "Hideaway Bay": 3 }
+    },
+    "Blizzard Beach": {
+        "Green Slope": { "Red Slope": 2, "Purple Slope": 2, "Lazy River": 3 },
+        "Red Slope": { "Green Slope": 2, "Purple Slope": 2, "Lazy River": 3 },
+        "Purple Slope": { "Green Slope": 2, "Red Slope": 2, "Lazy River": 3 },
+        "Lazy River": { "Green Slope": 3, "Red Slope": 3, "Purple Slope": 3 }
     }
 };
 
@@ -340,6 +367,24 @@ function setupEventListeners() {
         });
     });
 
+    // Botones de emoji rápidos en el modal del itinerario
+    document.querySelectorAll(".emoji-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const emoji = btn.getAttribute("data-emoji");
+            const input = document.getElementById("itinerary-title");
+            if (input) {
+                let title = input.value;
+                const emojiRegex = /[\s]*[\p{Emoji_Presentation}\p{Emoji}\u200d\uFE0F]+$/u;
+                if (emojiRegex.test(title)) {
+                    title = title.replace(emojiRegex, " " + emoji);
+                } else {
+                    title = title.trim() + " " + emoji;
+                }
+                input.value = title;
+            }
+        });
+    });
+
     // 4. Modales - Control de envío
     document.getElementById("form-itinerary").addEventListener("submit", handleItinerarySubmit);
     document.getElementById("form-attraction").addEventListener("submit", handleAttractionSubmit);
@@ -425,6 +470,12 @@ function unlockApp() {
 // --- CONTROL DE NAVEGACIÓN TAB BAR ---
 function switchTab(tabName) {
     currentActiveTab = tabName;
+    
+    // Siempre volver al inicio de la página (ej: ocultar detalle de Locker Seguro)
+    const sensitiveDetailPanel = document.getElementById("sensitive-detail-panel");
+    if (sensitiveDetailPanel) {
+        sensitiveDetailPanel.classList.add("hidden");
+    }
     
     // Cambiar clase activa en Tab Buttons
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -527,7 +578,7 @@ function renderCalendarList() {
         
         let parkBadgeHtml = "";
         if (day.is_park_day && day.park_name) {
-            const isDisney = ["Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom"].includes(day.park_name);
+            const isDisney = ["Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", "Typhoon Lagoon", "Blizzard Beach"].includes(day.park_name);
             const badgeClass = isDisney ? "park-badge disney" : "park-badge universal";
             parkBadgeHtml = `<span class="${badgeClass}">${day.park_name}</span>`;
         }

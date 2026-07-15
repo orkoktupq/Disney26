@@ -106,6 +106,8 @@
                             <option value="Universal Studios">Universal Studios 🎬</option>
                             <option value="Islands of Adventure">Islands of Adventure 🦖</option>
                             <option value="Volcano Bay">Volcano Bay 🌊</option>
+                            <option value="Typhoon Lagoon">Typhoon Lagoon 🏄‍♂️</option>
+                            <option value="Blizzard Beach">Blizzard Beach ⛷️</option>
                         </select>
                     </div>
 
@@ -223,26 +225,36 @@
                 
             </main>
 
-            <!-- BARRA DE NAVEGACIÓN INFERIOR (Floating Tab Bar) -->
+            <!-- BARRA DE NAVEGACIÓN INFERIOR (Estilo WhatsApp iOS / Apple) -->
             <nav class="app-tab-bar">
                 <button class="tab-btn active" data-tab="calendario">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <div class="tab-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    </div>
                     <span>Itinerario</span>
                 </button>
                 <button class="tab-btn" data-tab="parques">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 6v12"></path><path d="M6 12h12"></path></svg>
+                    <div class="tab-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 6v12"></path><path d="M6 12h12"></path></svg>
+                    </div>
                     <span>Parques</span>
                 </button>
                 <button class="tab-btn" data-tab="tips">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.73a3 3 0 0 0-.544 1.728H9.828a3 3 0 0 0-.544-1.728l-.548-.73z"></path></svg>
+                    <div class="tab-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.73a3 3 0 0 0-.544 1.728H9.828a3 3 0 0 0-.544-1.728l-.548-.73z"></path></svg>
+                    </div>
                     <span>Tips</span>
                 </button>
                 <button class="tab-btn" data-tab="vuelos">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5S19 4 17.5 5.5L14 9 5.8 7.2c-.8-.2-1.6.4-1.6 1.2 0 .4.2.8.5 1l7.8 4.6-3.7 3.7-2.3-.5c-.3-.1-.7.1-.9.4l-.8.8c-.3.3-.2.8.2.9l3.5 1.5 1.5 3.5c.1.4.6.5.9.2l.8-.8c.3-.2.5-.6.4-.9l-.5-2.3 3.7-3.7 4.6 7.8c.2.3.6.5 1 .5.8 0 1.4-.8 1.2-1.6z"></path></svg>
+                    <div class="tab-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5S19 4 17.5 5.5L14 9 5.8 7.2c-.8-.2-1.6.4-1.6 1.2 0 .4.2.8.5 1l7.8 4.6-3.7 3.7-2.3-.5c-.3-.1-.7.1-.9.4l-.8.8c-.3.3-.2.8.2.9l3.5 1.5 1.5 3.5c.1.4.6.5.9.2l.8-.8c.3-.2.5-.6.4-.9l-.5-2.3 3.7-3.7 4.6 7.8c.2.3.6.5 1 .5.8 0 1.4-.8 1.2-1.6z"></path></svg>
+                    </div>
                     <span>Vuelos</span>
                 </button>
                 <button class="tab-btn" data-tab="sensible">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <div class="tab-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
                     <span>Seguro</span>
                 </button>
             </nav>
@@ -260,6 +272,24 @@
             <div class="form-group">
                 <label for="itinerary-title">Título del Día</label>
                 <input type="text" id="itinerary-title" class="apple-input" placeholder="Ej: Magic Kingdom 🏰" required>
+                <div class="emoji-selector-label">Iconos rápidos (cambia o agrega al final):</div>
+                <div class="emoji-selector-grid">
+                    <button type="button" class="emoji-btn" data-emoji="🏰">🏰</button>
+                    <button type="button" class="emoji-btn" data-emoji="🚀">🚀</button>
+                    <button type="button" class="emoji-btn" data-emoji="🎬">🎬</button>
+                    <button type="button" class="emoji-btn" data-emoji="🦖">🦖</button>
+                    <button type="button" class="emoji-btn" data-emoji="🌊">🌊</button>
+                    <button type="button" class="emoji-btn" data-emoji="🏄‍♂️">🏄‍♂️</button>
+                    <button type="button" class="emoji-btn" data-emoji="⛷️">⛷️</button>
+                    <button type="button" class="emoji-btn" data-emoji="🛍️">🛍️</button>
+                    <button type="button" class="emoji-btn" data-emoji="✈️">✈️</button>
+                    <button type="button" class="emoji-btn" data-emoji="🎒">🎒</button>
+                    <button type="button" class="emoji-btn" data-emoji="🏨">🏨</button>
+                    <button type="button" class="emoji-btn" data-emoji="🚗">🚗</button>
+                    <button type="button" class="emoji-btn" data-emoji="🍽️">🍽️</button>
+                    <button type="button" class="emoji-btn" data-emoji="☀️">☀️</button>
+                    <button type="button" class="emoji-btn" data-emoji="🎢">🎢</button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="itinerary-notes">Notas / Agenda</label>
@@ -279,6 +309,8 @@
                     <option value="Universal Studios">Universal Studios 🎬</option>
                     <option value="Islands of Adventure">Islands of Adventure 🦖</option>
                     <option value="Volcano Bay">Volcano Bay 🌊</option>
+                    <option value="Typhoon Lagoon">Typhoon Lagoon 🏄‍♂️</option>
+                    <option value="Blizzard Beach">Blizzard Beach ⛷️</option>
                 </select>
             </div>
             <div class="form-actions">
