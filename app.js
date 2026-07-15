@@ -1871,6 +1871,64 @@ function openSensitiveCategoryPanel() {
     toggleSensitiveViews(true);
 }
 
+function getFlagEmoji(countryOrNationality) {
+    if (!countryOrNationality) return "";
+    const clean = countryOrNationality.trim().toLowerCase();
+    
+    const flagMap = {
+        "argentina": "🇦🇷",
+        "argentino": "🇦🇷",
+        "argentina 🇦🇷": "🇦🇷",
+        "españa": "🇪🇸",
+        "español": "🇪🇸",
+        "española": "🇪🇸",
+        "espanol": "🇪🇸",
+        "espanola": "🇪🇸",
+        "italia": "🇮🇹",
+        "italiano": "🇮🇹",
+        "italiana": "🇮🇹",
+        "estados unidos": "🇺🇸",
+        "usa": "🇺🇸",
+        "eeuu": "🇺🇸",
+        "americano": "🇺🇸",
+        "americana": "🇺🇸",
+        "uruguay": "🇺🇾",
+        "uruguayo": "🇺🇾",
+        "uruguaya": "🇺🇾",
+        "brasil": "🇧🇷",
+        "brasileño": "🇧🇷",
+        "brasileña": "🇧🇷",
+        "chile": "🇨🇱",
+        "chileno": "🇨🇱",
+        "chilena": "🇨🇱",
+        "colombia": "🇨🇴",
+        "colombiano": "🇨🇴",
+        "colombiana": "🇨🇴",
+        "paraguay": "🇵🇾",
+        "paraguayo": "🇵🇾",
+        "paraguaya": "🇵🇾",
+        "méxico": "🇲🇽",
+        "mexico": "🇲🇽",
+        "mexicano": "🇲🇽",
+        "mexicana": "🇲🇽"
+    };
+    
+    if (flagMap[clean]) return flagMap[clean];
+    
+    if (clean.includes("argent")) return "🇦🇷";
+    if (clean.includes("esp")) return "🇪🇸";
+    if (clean.includes("ital")) return "🇮🇹";
+    if (clean.includes("urug")) return "🇺🇾";
+    if (clean.includes("bras")) return "🇧🇷";
+    if (clean.includes("chil")) return "🇨🇱";
+    if (clean.includes("colo")) return "🇨🇴";
+    if (clean.includes("para")) return "🇵🇾";
+    if (clean.includes("mexi")) return "🇲🇽";
+    if (clean.includes("estad") || clean.includes("eeuu") || clean.includes("usa") || clean.includes("unit")) return "🇺🇸";
+    
+    return "";
+}
+
 function renderSensitiveItems() {
     const listEl = document.getElementById("sensitive-items-list");
     listEl.innerHTML = "";
@@ -1887,11 +1945,13 @@ function renderSensitiveItems() {
         card.className = "sensitive-item-card";
         
         let contentHtml = "";
+        let flag = "";
         try {
             const data = JSON.parse(item.content);
             const notesText = data.notas ? `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color); font-style:italic; color:var(--text-secondary); font-size:12.5px;">Nota: ${data.notas}</div>` : "";
             
             if (item.category === "Pasaporte") {
+                flag = getFlagEmoji(data.nacionalidad);
                 contentHtml = `
                     <div class="passport-detail-box" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px; color:var(--text-secondary);">
                         <div><strong>Nombre:</strong> ${data.nombre || ""}</div>
@@ -1955,9 +2015,15 @@ function renderSensitiveItems() {
             contentHtml = `<pre>${item.content}</pre>`;
         }
         
+        let displayTitle = item.title;
+        if (item.category === "Pasaporte" && flag) {
+            displayTitle = displayTitle.replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, "").trim();
+            displayTitle = `${flag} ${displayTitle}`;
+        }
+        
         card.innerHTML = `
             <div class="sensitive-item-card-header">
-                <h4>${item.title}</h4>
+                <h4>${displayTitle}</h4>
                 <div class="card-action-buttons">
                     <button class="btn-edit-card" data-action="edit" title="Editar">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 9.5-9.5z"></path></svg>
