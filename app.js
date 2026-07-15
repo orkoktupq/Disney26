@@ -710,7 +710,7 @@ function switchTab(tabName) {
         "tips": "Tips del Viaje",
         "vuelos": "Vuelos",
         "compras": "Lista de Compras",
-        "sensible": "Locker Seguro"
+        "sensible": "Documentos"
     };
     
     document.getElementById("view-title").textContent = titleMap[tabName] || "Orlando 2026";
