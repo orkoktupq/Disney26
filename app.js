@@ -282,10 +282,18 @@ function loadCustomCategories() {
     }
 }
 
+const DEFAULT_CATEGORY_EMOJIS = ["🪪", "🏨", "🚗", "🏥", "📁", "🎟️", "✈️", "💵", "🛍️", "🍽️", "🗺️", "🔑", "📄", "🎒", "🔋", "🧸", "📷", "💡", "🛡️", "🏷️", "💳", "📅", "✏️", "🔔"];
+
 function saveCustomCategories() {
     const defaults = ["Pasaporte", "Hotel", "Auto", "Seguro", "Otro"];
     const customs = sensitiveCategories.filter(c => !defaults.includes(c.key));
     localStorage.setItem("disney2026_custom_categories", JSON.stringify(customs));
+}
+
+function saveCustomCategoriesOrder() {
+    const order = sensitiveCategories.map(c => c.key);
+    localStorage.setItem("disney2026_categories_order", JSON.stringify(order));
+    saveCustomCategories();
 }
 
 let db = {
@@ -297,11 +305,38 @@ let db = {
     dirty: {} // Registra elementos que necesitan sincronizarse con Supabase
 };
 
+function populateCategoryEmojiGrids() {
+    const newGrid = document.getElementById("new-category-emoji-grid");
+    const editGrid = document.getElementById("edit-category-emoji-grid");
+    
+    [newGrid, editGrid].forEach(grid => {
+        if (!grid) return;
+        grid.innerHTML = "";
+        DEFAULT_CATEGORY_EMOJIS.forEach(emoji => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = emoji;
+            btn.addEventListener("click", () => {
+                grid.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+                
+                if (grid.id === "new-category-emoji-grid") {
+                    document.getElementById("new-category-icon").value = emoji;
+                } else {
+                    document.getElementById("edit-category-icon").value = emoji;
+                }
+            });
+            grid.appendChild(btn);
+        });
+    });
+}
+
 // --- INICIALIZAR APLICACIÓN ---
 document.addEventListener("DOMContentLoaded", async () => {
     initClock();
     initLocalDB();
     setupEventListeners();
+    populateCategoryEmojiGrids();
     fetchOrlandoWeather();
     
     // Iniciar Supabase si las credenciales están configuradas
@@ -344,6 +379,23 @@ function initClock() {
 // --- BASE DE DATOS LOCAL (localStorage fallback) ---
 function initLocalDB() {
     loadCustomCategories();
+    
+    const storedOrder = localStorage.getItem("disney2026_categories_order");
+    if (storedOrder) {
+        try {
+            const orderKeys = JSON.parse(storedOrder);
+            sensitiveCategories.sort((a, b) => {
+                const idxA = orderKeys.indexOf(a.key);
+                const idxB = orderKeys.indexOf(b.key);
+                const posA = idxA === -1 ? 999 : idxA;
+                const posB = idxB === -1 ? 999 : idxB;
+                return posA - posB;
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     const keys = ["itinerary", "attractions", "flights", "sensible", "tips"];
     keys.forEach(key => {
         const stored = localStorage.getItem(`disney2026_${key}`);
@@ -525,8 +577,41 @@ function setupEventListeners() {
                 icon: icon,
                 suffix: "registros"
             });
-            saveCustomCategories();
+            saveCustomCategoriesOrder();
             updateSensitiveCounters();
+        }
+    });
+
+    // Submit de editar categoría
+    document.getElementById("form-edit-category").addEventListener("submit", (e) => {
+        const key = document.getElementById("edit-category-key").value;
+        const newName = document.getElementById("edit-category-name").value.trim();
+        const newIcon = document.getElementById("edit-category-icon").value.trim() || "📁";
+        
+        if (key && newName) {
+            const catIndex = sensitiveCategories.findIndex(c => c.key === key);
+            if (catIndex !== -1) {
+                const oldKey = sensitiveCategories[catIndex].key;
+                
+                // Actualizar propiedades
+                sensitiveCategories[catIndex].label = newName;
+                sensitiveCategories[catIndex].icon = newIcon;
+                
+                // Si el nombre cambió, actualizar todos los registros asociados
+                if (oldKey !== newName) {
+                    sensitiveCategories[catIndex].key = newName;
+                    
+                    db.sensible.forEach((item, idx) => {
+                        if (item.category === oldKey) {
+                            db.sensible[idx].category = newName;
+                        }
+                    });
+                    saveLocal("sensible");
+                }
+                
+                saveCustomCategoriesOrder();
+                updateSensitiveCounters();
+            }
         }
     });
 
@@ -1618,6 +1703,8 @@ function setupSensitiveFormFields(category) {
 }
 
 // --- RENDERIZAR TAB 5: LOCKER SEGURO (DATOS SENSIBLES) ---
+let draggedCategoryKey = null;
+
 function updateSensitiveCounters() {
     const grid = document.getElementById("sensitive-categories-grid");
     if (!grid) return;
@@ -1636,21 +1723,90 @@ function updateSensitiveCounters() {
         const card = document.createElement("button");
         card.className = "sensitive-cat-card";
         card.setAttribute("data-cat", cat.key);
+        card.setAttribute("draggable", "true");
+        
         card.innerHTML = `
             <div class="cat-icon">${cat.icon}</div>
-            <div class="cat-info">
+            <div class="cat-info" style="padding-right: 28px;">
                 <h4>${cat.label}</h4>
                 <p>${count} ${suffixText}</p>
             </div>
         `;
+        
+        // Botón para editar la categoría
+        const editCatBtn = document.createElement("div");
+        editCatBtn.className = "btn-edit-cat-icon";
+        editCatBtn.title = "Modificar Categoría";
+        editCatBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        `;
+        editCatBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openEditCategoryModal(cat.key);
+        });
+        card.appendChild(editCatBtn);
         
         card.addEventListener("click", () => {
             selectedSensitiveCategory = cat.key;
             openSensitiveCategoryPanel();
         });
         
+        // Eventos de arrastre (Drag & Drop)
+        card.addEventListener("dragstart", (e) => {
+            draggedCategoryKey = cat.key;
+            card.classList.add("dragging");
+            e.dataTransfer.effectAllowed = "move";
+        });
+        
+        card.addEventListener("dragover", (e) => {
+            e.preventDefault();
+        });
+        
+        card.addEventListener("drop", (e) => {
+            e.preventDefault();
+            if (draggedCategoryKey && draggedCategoryKey !== cat.key) {
+                const dragIdx = sensitiveCategories.findIndex(c => c.key === draggedCategoryKey);
+                const dropIdx = sensitiveCategories.findIndex(c => c.key === cat.key);
+                
+                const draggedItem = sensitiveCategories[dragIdx];
+                sensitiveCategories.splice(dragIdx, 1);
+                sensitiveCategories.splice(dropIdx, 0, draggedItem);
+                
+                saveCustomCategoriesOrder();
+                updateSensitiveCounters();
+            }
+        });
+        
+        card.addEventListener("dragend", () => {
+            card.classList.remove("dragging");
+            draggedCategoryKey = null;
+        });
+        
         grid.appendChild(card);
     });
+}
+
+function openEditCategoryModal(key) {
+    const cat = sensitiveCategories.find(c => c.key === key);
+    if (!cat) return;
+    
+    document.getElementById("edit-category-key").value = cat.key;
+    document.getElementById("edit-category-name").value = cat.label;
+    document.getElementById("edit-category-icon").value = cat.icon;
+    
+    // Pre-seleccionar el emoji activo en la grilla
+    const editGrid = document.getElementById("edit-category-emoji-grid");
+    if (editGrid) {
+        editGrid.querySelectorAll("button").forEach(btn => {
+            if (btn.textContent === cat.icon) {
+                btn.classList.add("selected");
+            } else {
+                btn.classList.remove("selected");
+            }
+        });
+    }
+    
+    document.getElementById("modal-edit-category").showModal();
 }
 
 function openSensitiveCategoryPanel() {
