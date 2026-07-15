@@ -26,21 +26,22 @@ let supabaseClient = null;
 
 // --- DATOS INICIALES REALISTAS DE FACTO (FALLBACK LOCAL) ---
 const DEFAULT_ITINERARY = [
-    { id: "i1", date: "2026-07-17", title: "Llegada a Orlando ✈️", notes: "Vuelo EZE -> MCO. Retiro del auto de alquiler en Hertz y check-in en Universal Cabana Bay Beach Resort. Compras rápidas en Walmart.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i2", date: "2026-07-18", title: "Magic Kingdom 🏰", notes: "¡Primer día de parque! Llegar temprano para el Rope Drop. Reservar TRON y Tiana en Virtual Queue/Lightning Lane a las 7:00 AM.", is_park_day: true, park_name: "Magic Kingdom", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i3", date: "2026-07-19", title: "Epcot 🚀", notes: "Visita a Epcot. Cosmic Rewind es prioridad (Virtual Queue a las 7:00 AM o Lightning Lane Single Pass). Pasear por los pabellones de World Showcase en la tarde.", is_park_day: true, park_name: "Epcot", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i4", date: "2026-07-20", title: "Universal Studios Florida 🎬", notes: "Visita a Universal Studios. Diagon Alley (Gringotts), Revenge of the Mummy y Men in Black. Almorzar en el Caldero Chorreante.", is_park_day: true, park_name: "Universal Studios", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i5", date: "2026-07-21", title: "Disney's Hollywood Studios 🎬", notes: "Mundo Star Wars (Galaxy's Edge) a primera hora. Rise of the Resistance y Slinky Dog Dash son las prioridades del día.", is_park_day: true, park_name: "Hollywood Studios", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i6", date: "2026-07-22", title: "Día de Compras y Descanso 🛍️", notes: "Mañana libre en la pileta de Cabana Bay. Tarde de compras en Orlando Premium Outlets (International Dr) y cena en Disney Springs.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i7", date: "2026-07-23", title: "Universal's Islands of Adventure 🦖", notes: "Atracciones principales: VelociCoaster, Hagrid's Motorbike Adventure y Spider-Man. Tomar el Hogwarts Express hacia Universal Studios.", is_park_day: true, park_name: "Islands of Adventure", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i8", date: "2026-07-24", title: "Disney's Animal Kingdom 🌳", notes: "Entrar temprano para Avatar Flight of Passage. Expedition Everest y el safari Kilimanjaro Safaris en la mañana para ver los animales activos.", is_park_day: true, park_name: "Animal Kingdom", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i9", date: "2026-07-25", title: "Volcano Bay 🌊", notes: "Día de relax y toboganes en el parque acuático de Universal. Utilizar la pulsera TapuTapu para reservar tiempos de fila virtual.", is_park_day: true, park_name: "Volcano Bay", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i10", date: "2026-07-26", title: "Magic Kingdom (Día 2) 🏰", notes: "Completar atracciones pendientes de Fantasyland y Frontierland. Ver el show de fuegos artificiales Happily Ever After desde una buena ubicación.", is_park_day: true, park_name: "Magic Kingdom", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i11", date: "2026-07-27", title: "Islands of Adventure (Día 2) 🦖", notes: "Repetir VelociCoaster y Hagrid's. Disfrutar los detalles de Hogsmeade y almorzar en Las Tres Escobas.", is_park_day: true, park_name: "Islands of Adventure", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i12", date: "2026-07-28", title: "Epcot (Día 2) 🚀", notes: "Repetir Cosmic Rewind y Soarin'. Caminar con calma por World Showcase, cenar en el pabellón de Japón y ver el show nocturno Luminous.", is_park_day: true, park_name: "Epcot", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i13", date: "2026-07-29", title: "Hollywood Studios (Día 2) 🎬", notes: "Hacer Toy Story Mania, Tower of Terror y ver el show nocturno Fantasmic! (llegar 45 min antes).", is_park_day: true, park_name: "Hollywood Studios", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i14", date: "2026-07-30", title: "Últimas Compras y Valijas 🎒", notes: "Último día para comprar recuerdos en Target y Disney Springs. Armar valijas y pesar el equipaje para evitar sorpresas en el aeropuerto.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i15", date: "2026-07-31", title: "Regreso a Casa ✈️", notes: "Check-out del hotel Cabana Bay. Devolución del auto en Hertz (MCO). Vuelo de regreso MCO -> Buenos Aires.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" }
+    { id: "i0", date: "2026-07-16", title: "Día Previo / Viaje a Orlando", notes: "Día de preparación y salida del vuelo.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i1", date: "2026-07-17", title: "Llegada a Orlando", notes: "Vuelo EZE -> MCO. Retiro del auto de alquiler en Hertz y check-in en Universal Cabana Bay Beach Resort. Compras rápidas en Walmart.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i2", date: "2026-07-18", title: "Magic Kingdom", notes: "¡Primer día de parque! Llegar temprano para el Rope Drop. Reservar TRON y Tiana en Virtual Queue/Lightning Lane a las 7:00 AM.", is_park_day: true, park_name: "Magic Kingdom", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i3", date: "2026-07-19", title: "Epcot", notes: "Visita a Epcot. Cosmic Rewind es prioridad (Virtual Queue a las 7:00 AM o Lightning Lane Single Pass). Pasear por los pabellones de World Showcase en la tarde.", is_park_day: true, park_name: "Epcot", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i4", date: "2026-07-20", title: "Universal Studios Florida", notes: "Visita a Universal Studios. Diagon Alley (Gringotts), Revenge of the Mummy y Men in Black. Almorzar en el Caldero Chorreante.", is_park_day: true, park_name: "Universal Studios", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i5", date: "2026-07-21", title: "Disney's Hollywood Studios", notes: "Mundo Star Wars (Galaxy's Edge) a primera hora. Rise of the Resistance y Slinky Dog Dash son las prioridades del día.", is_park_day: true, park_name: "Hollywood Studios", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i6", date: "2026-07-22", title: "Día de Compras y Descanso", notes: "Mañana libre en la pileta de Cabana Bay. Tarde de compras en Orlando Premium Outlets (International Dr) y cena en Disney Springs.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i7", date: "2026-07-23", title: "Universal's Islands of Adventure", notes: "Atracciones principales: VelociCoaster, Hagrid's Motorbike Adventure y Spider-Man. Tomar el Hogwarts Express hacia Universal Studios.", is_park_day: true, park_name: "Islands of Adventure", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i8", date: "2026-07-24", title: "Disney's Animal Kingdom", notes: "Entrar temprano para Avatar Flight of Passage. Expedition Everest y el safari Kilimanjaro Safaris en la mañana para ver los animales activos.", is_park_day: true, park_name: "Animal Kingdom", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i9", date: "2026-07-25", title: "Volcano Bay", notes: "Día de relax y toboganes en el parque acuático de Universal. Utilizar la pulsera TapuTapu para reservar tiempos de fila virtual.", is_park_day: true, park_name: "Volcano Bay", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i10", date: "2026-07-26", title: "Magic Kingdom (Día 2)", notes: "Completar atracciones pendientes de Fantasyland y Frontierland. Ver el show de fuegos artificiales Happily Ever After desde una buena ubicación.", is_park_day: true, park_name: "Magic Kingdom", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i11", date: "2026-07-27", title: "Islands of Adventure (Día 2)", notes: "Repetir VelociCoaster y Hagrid's. Disfrutar los detalles de Hogsmeade y almorzar en Las Tres Escobas.", is_park_day: true, park_name: "Islands of Adventure", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i12", date: "2026-07-28", title: "Epcot (Día 2)", notes: "Repetir Cosmic Rewind y Soarin'. Caminar con calma por World Showcase, cenar en el pabellón de Japón y ver el show nocturno Luminous.", is_park_day: true, park_name: "Epcot", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i13", date: "2026-07-29", title: "Hollywood Studios (Día 2)", notes: "Hacer Toy Story Mania, Tower of Terror y ver el show nocturno Fantasmic! (llegar 45 min antes).", is_park_day: true, park_name: "Hollywood Studios", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i14", date: "2026-07-30", title: "Últimas Compras y Valijas", notes: "Último día para comprar recuerdos en Target y Disney Springs. Armar valijas y pesar el equipaje para evitar sorpresas en el aeropuerto.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i15", date: "2026-07-31", title: "Regreso a Casa", notes: "Check-out del hotel Cabana Bay. Devolución del auto en Hertz (MCO). Vuelo de regreso MCO -> Buenos Aires.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" }
 ];
 
 const DEFAULT_ATTRACTIONS = [
@@ -330,6 +331,25 @@ function initLocalDB() {
             localStorage.setItem(`disney2026_${key}`, JSON.stringify(defaultVal));
         }
     });
+
+    // Inyectar el día 16/7 si no existe en el itinerario cargado
+    const hasJuly16 = db.itinerary.some(item => item.date === "2026-07-16");
+    if (!hasJuly16) {
+        db.itinerary.push({
+            id: generateUUID(),
+            date: "2026-07-16",
+            title: "Día Previo / Viaje a Orlando",
+            notes: JSON.stringify({
+                general_notes: "Día de preparación y salida del vuelo.",
+                activities: []
+            }),
+            is_park_day: false,
+            park_name: "",
+            updated_at: new Date().toISOString()
+        });
+        localStorage.setItem("disney2026_itinerary", JSON.stringify(db.itinerary));
+        db.dirty.itinerary = true;
+    }
 
     const storedDirty = localStorage.getItem("disney2026_dirty");
     if (storedDirty) {
