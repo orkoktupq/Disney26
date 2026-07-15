@@ -1692,6 +1692,9 @@ function handleSensitiveSubmit(e) {
     saveLocal("sensible");
     renderSensitiveItems();
     updateSensitiveCounters();
+    
+    // Volver automáticamente al menú anterior de Seguro
+    document.getElementById("sensitive-detail-panel").classList.add("hidden");
 }
 
 function deleteSensitiveItem(id) {
@@ -1701,6 +1704,9 @@ function deleteSensitiveItem(id) {
         
         renderSensitiveItems();
         updateSensitiveCounters();
+        
+        // Volver automáticamente al menú anterior de Seguro
+        document.getElementById("sensitive-detail-panel").classList.add("hidden");
     }
 }
 
