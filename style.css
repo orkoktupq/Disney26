@@ -628,11 +628,18 @@ body {
     border-radius: 16px;
     padding: 14px 16px;
     display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.card-header {
+    display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: var(--shadow);
+    width: 100%;
     cursor: pointer;
-    transition: var(--transition);
 }
 
 .calendar-card:active {
@@ -1563,4 +1570,147 @@ body {
     gap: 6px;
     margin-top: 4px;
     margin-bottom: 4px;
+}
+
+/* --- TAREAS Y ACTIVIDADES EXPANDIBLES POR DÍA --- */
+.card-header .arrow-icon {
+    transition: transform 0.2s ease;
+}
+
+.calendar-card.expanded .card-header .arrow-icon {
+    transform: rotate(90deg);
+}
+
+.card-expanded-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px dashed var(--card-border);
+    padding-top: 14px;
+    width: 100%;
+    animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.activities-list-nested {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nested-activity-card {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    gap: 10px;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+    .nested-activity-card {
+        background: rgba(255, 255, 255, 0.03);
+    }
+}
+
+.nested-activity-card.completed {
+    opacity: 0.6;
+}
+
+.nested-activity-card.completed .activity-text {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+.activity-left-side {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.activity-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1.5px solid var(--text-secondary);
+    cursor: pointer;
+    margin: 0;
+}
+
+.activity-emoji {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+}
+
+.activity-text {
+    font-size: 13.5px;
+    font-weight: 550;
+    color: var(--text-primary);
+}
+
+.activity-right-side {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-edit-activity, .btn-delete-activity {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    border-radius: 50%;
+}
+
+.btn-edit-activity:hover {
+    color: var(--accent-color);
+    background: rgba(10, 132, 255, 0.1);
+}
+
+.btn-delete-activity:hover {
+    color: var(--danger-color);
+    background: rgba(255, 59, 48, 0.1);
+}
+
+.btn-add-activity-nested {
+    background: rgba(10, 132, 255, 0.07);
+    color: #0a84ff;
+    border: 1px dashed rgba(10, 132, 255, 0.35);
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-add-activity-nested:hover {
+    background: rgba(10, 132, 255, 0.12);
+    border-color: #0a84ff;
+    transform: translateY(-1px);
+}
+
+.btn-add-activity-nested:active {
+    transform: translateY(0);
 }

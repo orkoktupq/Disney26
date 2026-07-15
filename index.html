@@ -401,6 +401,50 @@
         </div>
     </dialog>
 
+    <!-- MODAL DE DIÁLOGO: AGREGAR / EDITAR TAREA/ACTIVIDAD -->
+    <dialog id="modal-task-editor" class="apple-dialog">
+        <div class="dialog-header">
+            <h3 id="task-modal-title">Agregar Actividad</h3>
+            <button class="btn-close-dialog" onclick="document.getElementById('modal-task-editor').close()">✕</button>
+        </div>
+        <form id="form-task-editor" class="dialog-form" onsubmit="event.preventDefault();">
+            <input type="hidden" id="task-day-id">
+            <input type="hidden" id="task-id">
+            <div class="form-group-row align-center">
+                <div class="emoji-picker-container">
+                    <label>Icono</label>
+                    <button type="button" id="btn-select-task-emoji" class="emoji-picker-trigger-btn">📅</button>
+                </div>
+                <div class="form-group flex-1">
+                    <label for="task-title">Nombre de la Actividad</label>
+                    <input type="text" id="task-title" class="apple-input" placeholder="Ej: Vuelo de llegada, Almuerzo..." required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="task-park-link">Vincular a Parque (Opcional)</label>
+                <select id="task-park-link" class="apple-select">
+                    <option value="">Ninguno</option>
+                    <option value="Magic Kingdom">Magic Kingdom 🏰</option>
+                    <option value="Epcot">Epcot 🚀</option>
+                    <option value="Hollywood Studios">Hollywood Studios 🎬</option>
+                    <option value="Animal Kingdom">Animal Kingdom 🌳</option>
+                    <option value="Typhoon Lagoon">Typhoon Lagoon 🏄‍♂️</option>
+                    <option value="Blizzard Beach">Blizzard Beach ⛷️</option>
+                    <option value="Universal Studios">Universal Studios 🎬</option>
+                    <option value="Islands of Adventure">Islands of Adventure 🦖</option>
+                    <option value="Volcano Bay">Volcano Bay 🌊</option>
+                    <option value="Compras / Shopping">Compras 🛍️</option>
+                    <option value="Vuelo / Traslado">Vuelo ✈️</option>
+                    <option value="Hotel / Check-in">Hotel 🏨</option>
+                    <option value="Día de Descanso / Pileta">Descanso / Pileta ☀️</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="button" id="btn-submit-task" class="apple-btn-primary">Guardar Actividad</button>
+            </div>
+        </form>
+    </dialog>
+
     <!-- MODAL DE DIÁLOGO: AGREGAR ATRACCIÓN -->
     <dialog id="modal-attraction" class="apple-dialog">
         <div class="dialog-header">

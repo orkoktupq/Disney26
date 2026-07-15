@@ -380,20 +380,36 @@ function setupEventListeners() {
         });
     });
 
-    // Abrir modal selector de emoji al presionar el botón de icono en el itinerario
-    const emojiTriggerBtn = document.getElementById("btn-select-title-emoji");
-    if (emojiTriggerBtn) {
-        emojiTriggerBtn.addEventListener("click", () => {
+    let currentEmojiPickerTarget = "day"; // 'day' o 'task'
+
+    // Configurar objetivos al abrir el selector de emojis
+    const selectTitleEmojiBtn = document.getElementById("btn-select-title-emoji");
+    if (selectTitleEmojiBtn) {
+        selectTitleEmojiBtn.addEventListener("click", () => {
+            currentEmojiPickerTarget = "day";
             const pickerModal = document.getElementById("modal-emoji-picker");
             if (pickerModal) pickerModal.showModal();
         });
     }
 
-    // Seleccionar emoji del modal e insertarlo en el botón disparador
+    const selectTaskEmojiBtn = document.getElementById("btn-select-task-emoji");
+    if (selectTaskEmojiBtn) {
+        selectTaskEmojiBtn.addEventListener("click", () => {
+            currentEmojiPickerTarget = "task";
+            const pickerModal = document.getElementById("modal-emoji-picker");
+            if (pickerModal) pickerModal.showModal();
+        });
+    }
+
+    // Seleccionar emoji del modal e insertarlo en el botón disparador activo
     document.querySelectorAll(".picker-emoji-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const emoji = btn.getAttribute("data-emoji");
-            const trigger = document.getElementById("btn-select-title-emoji");
+            let triggerId = "btn-select-title-emoji";
+            if (currentEmojiPickerTarget === "task") {
+                triggerId = "btn-select-task-emoji";
+            }
+            const trigger = document.getElementById(triggerId);
             if (trigger) {
                 trigger.textContent = emoji;
                 trigger.setAttribute("data-emoji", emoji);
@@ -402,6 +418,12 @@ function setupEventListeners() {
             if (pickerModal) pickerModal.close();
         });
     });
+
+    // Guardar para el editor de actividades/tareas
+    const submitTaskBtn = document.getElementById("btn-submit-task");
+    if (submitTaskBtn) {
+        submitTaskBtn.addEventListener("click", handleTaskSubmit);
+    }
 
     // 4. Modales - Control de envío
     document.getElementById("form-itinerary").addEventListener("submit", handleItinerarySubmit);
@@ -577,6 +599,58 @@ async function fetchOrlandoWeather() {
     }
 }
 
+let expandedDays = {}; // Almacena qué días están expandidos (id -> true/false)
+
+// Helper para extraer notas de texto y actividades estructuradas
+function getDayNotesAndActivities(notesField) {
+    if (!notesField) {
+        return { general_notes: "", activities: [] };
+    }
+    try {
+        const trimmed = notesField.trim();
+        if (trimmed.startsWith("{")) {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && Array.isArray(parsed.activities)) {
+                return {
+                    general_notes: parsed.general_notes || "",
+                    activities: parsed.activities
+                };
+            }
+        }
+    } catch (e) {
+        // Fallback
+    }
+    
+    // Soporte para notas de texto heredadas: convertir en notas generales y parsear viñetas si existen
+    const lines = notesField.split("\n");
+    const activities = [];
+    const plainNotesLines = [];
+    
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("-") || trimmed.startsWith("*")) {
+            const taskText = trimmed.substring(1).trim();
+            if (taskText) {
+                const { emoji, title } = extractEmojiAndTitle(taskText);
+                activities.push({
+                    id: generateUUID(),
+                    title: title,
+                    emoji: emoji,
+                    completed: false,
+                    park_link: ""
+                });
+            }
+        } else if (trimmed) {
+            plainNotesLines.push(trimmed);
+        }
+    });
+    
+    return {
+        general_notes: plainNotesLines.join("\n"),
+        activities: activities
+    };
+}
+
 // --- RENDERIZAR TAB 1: CALENDARIO ---
 function renderCalendarList() {
     const listEl = document.getElementById("calendar-list");
@@ -593,11 +667,13 @@ function renderCalendarList() {
         
         const card = document.createElement("div");
         card.className = "calendar-card";
-        
-
+        const isExpanded = !!expandedDays[day.id];
+        if (isExpanded) card.classList.add("expanded");
         
         const { emoji, title } = extractEmojiAndTitle(day.title);
+        const { general_notes, activities } = getDayNotesAndActivities(day.notes);
         
+        // Renderizar etiquetas de actividades / parques
         let badgesHtml = "";
         if (day.park_name) {
             const activitiesList = day.park_name.split(", ").filter(Boolean);
@@ -609,28 +685,133 @@ function renderCalendarList() {
             });
         }
         
-        card.innerHTML = `
+        // Cabecera del día (toda la fila de arriba)
+        const header = document.createElement("div");
+        header.className = "card-header";
+        header.innerHTML = `
             <div class="card-date-badge">
                 <span class="date-day">${dayNum}</span>
                 <span class="date-month">${monthStr}</span>
             </div>
             <div class="card-emoji-left">${emoji}</div>
-            <div class="card-info">
+            <div class="card-info" style="flex: 1;">
                 <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight:600;">${weekdayStr}</span>
                 <h3>${title}</h3>
                 <div class="card-badges-container">
                     ${badgesHtml}
                 </div>
-                <p>${day.notes || "Sin planes definidos todavía..."}</p>
             </div>
-            <div class="card-meta">
-                <span class="arrow-icon">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="btn-edit-day" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:6px; display:flex;" title="Editar Día">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </button>
+                <span class="arrow-icon" style="display: flex;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </span>
             </div>
         `;
         
-        card.addEventListener("click", () => openItineraryEditModal(day.id));
+        // Clic en la cabecera abre/cierra la lista de actividades del día
+        header.addEventListener("click", () => {
+            expandedDays[day.id] = !expandedDays[day.id];
+            renderCalendarList();
+        });
+        
+        // Clic en el lápiz abre el editor de día
+        const editBtn = header.querySelector(".btn-edit-day");
+        editBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openItineraryEditModal(day.id);
+        });
+        
+        card.appendChild(header);
+        
+        // Contenido expandido (notas generales y listado de actividades/tareas)
+        if (isExpanded) {
+            const expContent = document.createElement("div");
+            expContent.className = "card-expanded-content";
+            
+            // Notas de texto
+            if (general_notes) {
+                const notesP = document.createElement("p");
+                notesP.className = "card-notes";
+                notesP.style.fontSize = "13px";
+                notesP.style.color = "var(--text-secondary)";
+                notesP.style.margin = "0 0 4px 0";
+                notesP.textContent = general_notes;
+                expContent.appendChild(notesP);
+            }
+            
+            // Lista de tareas/actividades
+            const listContainer = document.createElement("div");
+            listContainer.className = "activities-list-nested";
+            
+            activities.forEach(act => {
+                const actCard = document.createElement("div");
+                actCard.className = "nested-activity-card";
+                if (act.completed) actCard.classList.add("completed");
+                
+                actCard.innerHTML = `
+                    <div class="activity-left-side">
+                        <input type="checkbox" class="activity-checkbox" ${act.completed ? "checked" : ""}>
+                        <span class="activity-emoji">${act.emoji || "📅"}</span>
+                        <span class="activity-text">${act.title}</span>
+                    </div>
+                    <div class="activity-right-side">
+                        <button class="btn-edit-activity" title="Editar Actividad">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        </button>
+                        <button class="btn-delete-activity" title="Eliminar Actividad">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                `;
+                
+                // Marcar/Desmarcar completada
+                const chk = actCard.querySelector(".activity-checkbox");
+                chk.addEventListener("change", () => {
+                    act.completed = chk.checked;
+                    saveDayNotesAndActivities(day.id, general_notes, activities);
+                });
+                
+                // Editar actividad
+                const editActBtn = actCard.querySelector(".btn-edit-activity");
+                editActBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openTaskEditorModal(day.id, act.id);
+                });
+                
+                // Eliminar actividad
+                const deleteActBtn = actCard.querySelector(".btn-delete-activity");
+                deleteActBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    if (confirm(`¿Seguro que querés eliminar la actividad "${act.title}"?`)) {
+                        const newActivities = activities.filter(a => a.id !== act.id);
+                        saveDayNotesAndActivities(day.id, general_notes, newActivities);
+                    }
+                });
+                
+                listContainer.appendChild(actCard);
+            });
+            
+            expContent.appendChild(listContainer);
+            
+            // Botón de agregar actividad anidado
+            const addActBtn = document.createElement("button");
+            addActBtn.className = "btn-add-activity-nested";
+            addActBtn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Nueva Actividad</span>
+            `;
+            addActBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openTaskEditorModal(day.id, null);
+            });
+            
+            expContent.appendChild(addActBtn);
+            card.appendChild(expContent);
+        }
+        
         listEl.appendChild(card);
     });
 }
@@ -644,7 +825,9 @@ function openItineraryEditModal(id) {
     // Extraer emoji y título limpio
     const { emoji, title } = extractEmojiAndTitle(day.title);
     document.getElementById("itinerary-title").value = title;
-    document.getElementById("itinerary-notes").value = day.notes || "";
+    
+    const { general_notes } = getDayNotesAndActivities(day.notes);
+    document.getElementById("itinerary-notes").value = general_notes || "";
     
     // Configurar botón selector de emoji
     const emojiBtn = document.getElementById("btn-select-title-emoji");
@@ -675,7 +858,14 @@ function handleItinerarySubmit(e) {
     
     // Combinar en el campo de título original
     db.itinerary[dayIndex].title = cleanTitle + " " + emoji;
-    db.itinerary[dayIndex].notes = document.getElementById("itinerary-notes").value;
+    
+    const generalNotes = document.getElementById("itinerary-notes").value;
+    const { activities } = getDayNotesAndActivities(db.itinerary[dayIndex].notes);
+    
+    db.itinerary[dayIndex].notes = JSON.stringify({
+        general_notes: generalNotes || "",
+        activities: activities || []
+    });
     
     // Recopilar actividades seleccionadas
     const checkedActivities = [];
@@ -697,6 +887,118 @@ function handleItinerarySubmit(e) {
     
     saveLocal("itinerary");
     renderCalendarList();
+}
+
+// Guarda las actividades y notas generales de un día en formato JSON
+function saveDayNotesAndActivities(dayId, generalNotes, activities) {
+    const dayIndex = db.itinerary.findIndex(item => item.id === dayId);
+    if (dayIndex === -1) return;
+    
+    // Auto-actualizar vinculación de parques según las actividades
+    updateThemeParksFromActivities(dayId, activities);
+    
+    db.itinerary[dayIndex].notes = JSON.stringify({
+        general_notes: generalNotes || "",
+        activities: activities || []
+    });
+    db.itinerary[dayIndex].updated_at = new Date().toISOString();
+    
+    saveLocal("itinerary");
+    renderCalendarList();
+}
+
+// Sincroniza las actividades vinculadas a parques con las banderas principales de itinerario
+function updateThemeParksFromActivities(dayId, activities) {
+    const dayIndex = db.itinerary.findIndex(item => item.id === dayId);
+    if (dayIndex === -1) return;
+    
+    const themeParks = [
+        "Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", 
+        "Typhoon Lagoon", "Blizzard Beach", 
+        "Universal Studios", "Islands of Adventure", "Volcano Bay"
+    ];
+    
+    // Obtener todos los parques/actividades vinculados
+    const linkedParks = activities
+        .map(a => a.park_link)
+        .filter(Boolean);
+        
+    // Agregar también las actividades generales
+    const uniqueLinks = [...new Set(linkedParks)];
+    
+    const hasThemePark = uniqueLinks.some(link => themeParks.includes(link));
+    
+    db.itinerary[dayIndex].is_park_day = hasThemePark;
+    db.itinerary[dayIndex].park_name = uniqueLinks.join(", ");
+}
+
+// Abre el modal de edición de una tarea/actividad específica
+function openTaskEditorModal(dayId, taskId) {
+    document.getElementById("task-day-id").value = dayId;
+    document.getElementById("task-id").value = taskId || "";
+    
+    const day = db.itinerary.find(d => d.id === dayId);
+    const { activities } = getDayNotesAndActivities(day.notes);
+    
+    const emojiBtn = document.getElementById("btn-select-task-emoji");
+    const titleInput = document.getElementById("task-title");
+    const parkLinkSelect = document.getElementById("task-park-link");
+    
+    if (taskId) {
+        // Editar existente
+        const act = activities.find(a => a.id === taskId);
+        titleInput.value = act.title;
+        emojiBtn.textContent = act.emoji || "📅";
+        emojiBtn.setAttribute("data-emoji", act.emoji || "📅");
+        parkLinkSelect.value = act.park_link || "";
+        document.getElementById("task-modal-title").textContent = "Editar Actividad";
+    } else {
+        // Nueva actividad
+        titleInput.value = "";
+        emojiBtn.textContent = "📅";
+        emojiBtn.setAttribute("data-emoji", "📅");
+        parkLinkSelect.value = "";
+        document.getElementById("task-modal-title").textContent = "Agregar Actividad";
+    }
+    
+    document.getElementById("modal-task-editor").showModal();
+}
+
+// Envía el formulario de tarea/actividad
+function handleTaskSubmit() {
+    const dayId = document.getElementById("task-day-id").value;
+    const taskId = document.getElementById("task-id").value;
+    const title = document.getElementById("task-title").value.trim();
+    const emojiBtn = document.getElementById("btn-select-task-emoji");
+    const emoji = emojiBtn ? emojiBtn.getAttribute("data-emoji") || "📅" : "📅";
+    const parkLink = document.getElementById("task-park-link").value;
+    
+    if (!title) return;
+    
+    const day = db.itinerary.find(d => d.id === dayId);
+    const { general_notes, activities } = getDayNotesAndActivities(day.notes);
+    
+    if (taskId) {
+        // Actualizar existente
+        const actIdx = activities.findIndex(a => a.id === taskId);
+        if (actIdx !== -1) {
+            activities[actIdx].title = title;
+            activities[actIdx].emoji = emoji;
+            activities[actIdx].park_link = parkLink;
+        }
+    } else {
+        // Agregar nueva
+        activities.push({
+            id: generateUUID(),
+            title: title,
+            emoji: emoji,
+            completed: false,
+            park_link: parkLink
+        });
+    }
+    
+    saveDayNotesAndActivities(dayId, general_notes, activities);
+    document.getElementById("modal-task-editor").close();
 }
 
 // --- RENDERIZAR TAB 2: CHECKLIST DE PARQUES & DISTANCIAS ---
