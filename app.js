@@ -2410,6 +2410,8 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // --- COMPRAS PER-PROFILE CHECKLIST MANAGEMENT ---
+let draggedShoppingItemId = null;
+
 function renderShoppingList() {
     const listEl = document.getElementById("compras-items-list");
     if (!listEl) return;
@@ -2428,11 +2430,13 @@ function renderShoppingList() {
     filtered.forEach(item => {
         const card = document.createElement("div");
         card.className = `sensitive-item-card ${item.is_completed ? "completed" : ""}`;
+        card.setAttribute("draggable", "true");
         card.style.display = "flex";
         card.style.alignItems = "flex-start";
         card.style.gap = "12px";
         card.style.opacity = item.is_completed ? "0.6" : "1";
         card.style.padding = "14px";
+        card.style.cursor = "grab";
         
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
@@ -2471,6 +2475,39 @@ function renderShoppingList() {
         infoDiv.querySelector('[data-action="delete"]').addEventListener("click", (e) => {
             e.stopPropagation();
             deleteShoppingItem(item.id);
+        });
+        
+        // Eventos de arrastre (Drag & Drop)
+        card.addEventListener("dragstart", (e) => {
+            draggedShoppingItemId = item.id;
+            card.classList.add("dragging");
+            e.dataTransfer.effectAllowed = "move";
+        });
+        
+        card.addEventListener("dragover", (e) => {
+            e.preventDefault();
+        });
+        
+        card.addEventListener("drop", (e) => {
+            e.preventDefault();
+            if (draggedShoppingItemId && draggedShoppingItemId !== item.id) {
+                const dragIdx = db.compras.findIndex(i => i.id === draggedShoppingItemId);
+                const dropIdx = db.compras.findIndex(i => i.id === item.id);
+                
+                if (dragIdx !== -1 && dropIdx !== -1) {
+                    const draggedItem = db.compras[dragIdx];
+                    db.compras.splice(dragIdx, 1);
+                    db.compras.splice(dropIdx, 0, draggedItem);
+                    
+                    saveLocal("compras");
+                    renderShoppingList();
+                }
+            }
+        });
+        
+        card.addEventListener("dragend", () => {
+            card.classList.remove("dragging");
+            draggedShoppingItemId = null;
         });
         
         card.appendChild(checkbox);
