@@ -269,15 +269,9 @@
         </div>
         <form id="form-itinerary" method="dialog" class="dialog-form">
             <input type="hidden" id="itinerary-id">
-            <div class="form-group-row align-center">
-                <div class="emoji-picker-container">
-                    <label>Icono</label>
-                    <button type="button" id="btn-select-title-emoji" class="emoji-picker-trigger-btn">📅</button>
-                </div>
-                <div class="form-group flex-1">
-                    <label for="itinerary-title">Título del Día</label>
-                    <input type="text" id="itinerary-title" class="apple-input" placeholder="Ej: Llegada a Orlando" required>
-                </div>
+            <div class="form-group">
+                <label for="itinerary-title">Título del Día</label>
+                <input type="text" id="itinerary-title" class="apple-input" placeholder="Ej: Llegada y parque" required>
             </div>
             <div class="form-group">
                 <label for="itinerary-notes">Notas / Agenda</label>
@@ -438,6 +432,14 @@
                     <option value="Hotel / Check-in">Hotel 🏨</option>
                     <option value="Día de Descanso / Pileta">Descanso / Pileta ☀️</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label for="task-time">Horario (Opcional)</label>
+                <input type="time" id="task-time" class="apple-input">
+            </div>
+            <div class="form-group">
+                <label for="task-notes">Notas / Descripción (Opcional)</label>
+                <textarea id="task-notes" class="apple-textarea" placeholder="Ej: Confirmación de reserva, llevar calzado cómodo..." rows="2"></textarea>
             </div>
             <div class="form-actions">
                 <button type="button" id="btn-submit-task" class="apple-btn-primary">Guardar Actividad</button>

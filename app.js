@@ -380,36 +380,20 @@ function setupEventListeners() {
         });
     });
 
-    let currentEmojiPickerTarget = "day"; // 'day' o 'task'
-
-    // Configurar objetivos al abrir el selector de emojis
-    const selectTitleEmojiBtn = document.getElementById("btn-select-title-emoji");
-    if (selectTitleEmojiBtn) {
-        selectTitleEmojiBtn.addEventListener("click", () => {
-            currentEmojiPickerTarget = "day";
-            const pickerModal = document.getElementById("modal-emoji-picker");
-            if (pickerModal) pickerModal.showModal();
-        });
-    }
-
+    // Configurar el selector de emojis para las tareas/actividades
     const selectTaskEmojiBtn = document.getElementById("btn-select-task-emoji");
     if (selectTaskEmojiBtn) {
         selectTaskEmojiBtn.addEventListener("click", () => {
-            currentEmojiPickerTarget = "task";
             const pickerModal = document.getElementById("modal-emoji-picker");
             if (pickerModal) pickerModal.showModal();
         });
     }
 
-    // Seleccionar emoji del modal e insertarlo en el botón disparador activo
+    // Seleccionar emoji del modal e insertarlo en el botón disparador de la tarea
     document.querySelectorAll(".picker-emoji-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const emoji = btn.getAttribute("data-emoji");
-            let triggerId = "btn-select-title-emoji";
-            if (currentEmojiPickerTarget === "task") {
-                triggerId = "btn-select-task-emoji";
-            }
-            const trigger = document.getElementById(triggerId);
+            const trigger = document.getElementById("btn-select-task-emoji");
             if (trigger) {
                 trigger.textContent = emoji;
                 trigger.setAttribute("data-emoji", emoji);
@@ -670,7 +654,6 @@ function renderCalendarList() {
         const isExpanded = !!expandedDays[day.id];
         if (isExpanded) card.classList.add("expanded");
         
-        const { emoji, title } = extractEmojiAndTitle(day.title);
         const { general_notes, activities } = getDayNotesAndActivities(day.notes);
         
         // Renderizar etiquetas de actividades / parques
@@ -693,10 +676,9 @@ function renderCalendarList() {
                 <span class="date-day">${dayNum}</span>
                 <span class="date-month">${monthStr}</span>
             </div>
-            <div class="card-emoji-left">${emoji}</div>
-            <div class="card-info" style="flex: 1;">
+            <div class="card-info" style="flex: 1; margin-left: 12px;">
                 <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight:600;">${weekdayStr}</span>
-                <h3>${title}</h3>
+                <h3>${day.title || "Sin título"}</h3>
                 <div class="card-badges-container">
                     ${badgesHtml}
                 </div>
@@ -742,11 +724,17 @@ function renderCalendarList() {
                 expContent.appendChild(notesP);
             }
             
-            // Lista de tareas/actividades
+            // Lista de tareas/actividades (Ordenadas cronológicamente por horario)
             const listContainer = document.createElement("div");
             listContainer.className = "activities-list-nested";
             
-            activities.forEach(act => {
+            const sortedActivities = [...activities].sort((a, b) => {
+                const timeA = a.time || "99:99";
+                const timeB = b.time || "99:99";
+                return timeA.localeCompare(timeB);
+            });
+            
+            sortedActivities.forEach(act => {
                 const actCard = document.createElement("div");
                 actCard.className = "nested-activity-card";
                 if (act.completed) actCard.classList.add("completed");
@@ -754,8 +742,12 @@ function renderCalendarList() {
                 actCard.innerHTML = `
                     <div class="activity-left-side">
                         <input type="checkbox" class="activity-checkbox" ${act.completed ? "checked" : ""}>
+                        ${act.time ? `<span class="activity-time-badge">${act.time}</span>` : ""}
                         <span class="activity-emoji">${act.emoji || "📅"}</span>
-                        <span class="activity-text">${act.title}</span>
+                        <div class="activity-text-container">
+                            <span class="activity-text">${act.title}</span>
+                            ${act.notes ? `<span class="activity-notes-subtext">${act.notes}</span>` : ""}
+                        </div>
                     </div>
                     <div class="activity-right-side">
                         <button class="btn-edit-activity" title="Editar Actividad">
@@ -821,20 +813,10 @@ function openItineraryEditModal(id) {
     if (!day) return;
     
     document.getElementById("itinerary-id").value = day.id;
-    
-    // Extraer emoji y título limpio
-    const { emoji, title } = extractEmojiAndTitle(day.title);
-    document.getElementById("itinerary-title").value = title;
+    document.getElementById("itinerary-title").value = day.title || "";
     
     const { general_notes } = getDayNotesAndActivities(day.notes);
     document.getElementById("itinerary-notes").value = general_notes || "";
-    
-    // Configurar botón selector de emoji
-    const emojiBtn = document.getElementById("btn-select-title-emoji");
-    if (emojiBtn) {
-        emojiBtn.textContent = emoji;
-        emojiBtn.setAttribute("data-emoji", emoji);
-    }
     
     // Configurar los checkboxes de actividades
     const selectedActivities = day.park_name ? day.park_name.split(", ") : [];
@@ -851,13 +833,8 @@ function handleItinerarySubmit(e) {
     const dayIndex = db.itinerary.findIndex(item => item.id === id);
     if (dayIndex === -1) return;
     
-    // Leer el título limpio y el emoji
-    const cleanTitle = document.getElementById("itinerary-title").value.trim();
-    const emojiBtn = document.getElementById("btn-select-title-emoji");
-    const emoji = emojiBtn ? emojiBtn.getAttribute("data-emoji") || "📅" : "📅";
-    
-    // Combinar en el campo de título original
-    db.itinerary[dayIndex].title = cleanTitle + " " + emoji;
+    // Guardar el título directo
+    db.itinerary[dayIndex].title = document.getElementById("itinerary-title").value.trim();
     
     const generalNotes = document.getElementById("itinerary-notes").value;
     const { activities } = getDayNotesAndActivities(db.itinerary[dayIndex].notes);
@@ -943,14 +920,18 @@ function openTaskEditorModal(dayId, taskId) {
     const emojiBtn = document.getElementById("btn-select-task-emoji");
     const titleInput = document.getElementById("task-title");
     const parkLinkSelect = document.getElementById("task-park-link");
+    const timeInput = document.getElementById("task-time");
+    const notesInput = document.getElementById("task-notes");
     
     if (taskId) {
         // Editar existente
         const act = activities.find(a => a.id === taskId);
-        titleInput.value = act.title;
+        titleInput.value = act.title || "";
         emojiBtn.textContent = act.emoji || "📅";
         emojiBtn.setAttribute("data-emoji", act.emoji || "📅");
         parkLinkSelect.value = act.park_link || "";
+        timeInput.value = act.time || "";
+        notesInput.value = act.notes || "";
         document.getElementById("task-modal-title").textContent = "Editar Actividad";
     } else {
         // Nueva actividad
@@ -958,6 +939,8 @@ function openTaskEditorModal(dayId, taskId) {
         emojiBtn.textContent = "📅";
         emojiBtn.setAttribute("data-emoji", "📅");
         parkLinkSelect.value = "";
+        timeInput.value = "";
+        notesInput.value = "";
         document.getElementById("task-modal-title").textContent = "Agregar Actividad";
     }
     
@@ -972,6 +955,8 @@ function handleTaskSubmit() {
     const emojiBtn = document.getElementById("btn-select-task-emoji");
     const emoji = emojiBtn ? emojiBtn.getAttribute("data-emoji") || "📅" : "📅";
     const parkLink = document.getElementById("task-park-link").value;
+    const time = document.getElementById("task-time").value;
+    const notes = document.getElementById("task-notes").value.trim();
     
     if (!title) return;
     
@@ -985,6 +970,8 @@ function handleTaskSubmit() {
             activities[actIdx].title = title;
             activities[actIdx].emoji = emoji;
             activities[actIdx].park_link = parkLink;
+            activities[actIdx].time = time;
+            activities[actIdx].notes = notes;
         }
     } else {
         // Agregar nueva
@@ -993,7 +980,9 @@ function handleTaskSubmit() {
             title: title,
             emoji: emoji,
             completed: false,
-            park_link: parkLink
+            park_link: parkLink,
+            time: time,
+            notes: notes
         });
     }
     
