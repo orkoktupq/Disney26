@@ -1744,3 +1744,50 @@ body {
     color: var(--text-secondary);
     font-weight: 400;
 }
+
+/* Selector de horario en formato de rueda estilo iOS */
+.time-picker-wheels-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 6px 14px;
+    max-width: 160px;
+    margin: 4px auto 0 auto;
+}
+
+@media (prefers-color-scheme: dark) {
+    .time-picker-wheels-container {
+        background: rgba(255, 255, 255, 0.04);
+    }
+}
+
+.time-wheel-select {
+    background: none;
+    border: none;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 4px;
+    text-align: center;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Remover flechas en navegadores de Mac/Safari */
+.time-wheel-select::-ms-expand {
+    display: none;
+}
+
+.time-wheel-separator {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding-bottom: 2px;
+}

@@ -713,17 +713,7 @@ function renderCalendarList() {
             const expContent = document.createElement("div");
             expContent.className = "card-expanded-content";
             
-            // Notas de texto
-            if (general_notes) {
-                const notesP = document.createElement("p");
-                notesP.className = "card-notes";
-                notesP.style.fontSize = "13px";
-                notesP.style.color = "var(--text-secondary)";
-                notesP.style.margin = "0 0 4px 0";
-                notesP.textContent = general_notes;
-                expContent.appendChild(notesP);
-            }
-            
+
             // Lista de tareas/actividades (Ordenadas cronológicamente por horario)
             const listContainer = document.createElement("div");
             listContainer.className = "activities-list-nested";
@@ -920,7 +910,8 @@ function openTaskEditorModal(dayId, taskId) {
     const emojiBtn = document.getElementById("btn-select-task-emoji");
     const titleInput = document.getElementById("task-title");
     const parkLinkSelect = document.getElementById("task-park-link");
-    const timeInput = document.getElementById("task-time");
+    const hourSelect = document.getElementById("task-time-hour");
+    const minuteSelect = document.getElementById("task-time-minute");
     const notesInput = document.getElementById("task-notes");
     
     if (taskId) {
@@ -930,7 +921,17 @@ function openTaskEditorModal(dayId, taskId) {
         emojiBtn.textContent = act.emoji || "📅";
         emojiBtn.setAttribute("data-emoji", act.emoji || "📅");
         parkLinkSelect.value = act.park_link || "";
-        timeInput.value = act.time || "";
+        
+        // Cargar horario en las ruedas
+        const [hh, mm] = (act.time || "12:00").split(":");
+        hourSelect.value = hh || "12";
+        
+        let minutesNum = parseInt(mm || "00", 10);
+        let roundedMinutes = Math.round(minutesNum / 5) * 5;
+        if (roundedMinutes >= 60) roundedMinutes = 55;
+        let mmString = roundedMinutes.toString().padStart(2, '0');
+        minuteSelect.value = mmString;
+        
         notesInput.value = act.notes || "";
         document.getElementById("task-modal-title").textContent = "Editar Actividad";
     } else {
@@ -939,7 +940,8 @@ function openTaskEditorModal(dayId, taskId) {
         emojiBtn.textContent = "📅";
         emojiBtn.setAttribute("data-emoji", "📅");
         parkLinkSelect.value = "";
-        timeInput.value = "";
+        hourSelect.value = "12";
+        minuteSelect.value = "00";
         notesInput.value = "";
         document.getElementById("task-modal-title").textContent = "Agregar Actividad";
     }
@@ -950,14 +952,9 @@ function openTaskEditorModal(dayId, taskId) {
 // Envía el formulario de tarea/actividad
 function handleTaskSubmit() {
     const titleInput = document.getElementById("task-title");
-    const timeInput = document.getElementById("task-time");
     
     if (!titleInput.checkValidity()) {
         titleInput.reportValidity();
-        return;
-    }
-    if (!timeInput.checkValidity()) {
-        timeInput.reportValidity();
         return;
     }
     
@@ -967,7 +964,12 @@ function handleTaskSubmit() {
     const emojiBtn = document.getElementById("btn-select-task-emoji");
     const emoji = emojiBtn ? emojiBtn.getAttribute("data-emoji") || "📅" : "📅";
     const parkLink = document.getElementById("task-park-link").value;
-    const time = timeInput.value;
+    
+    // Leer horario de las ruedas
+    const hh = document.getElementById("task-time-hour").value;
+    const mm = document.getElementById("task-time-minute").value;
+    const time = `${hh}:${mm}`;
+    
     const notes = document.getElementById("task-notes").value.trim();
     
     const day = db.itinerary.find(d => d.id === dayId);
