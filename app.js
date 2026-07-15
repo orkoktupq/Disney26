@@ -487,6 +487,7 @@ function setupEventListeners() {
         document.getElementById("form-sensitive").reset();
         document.getElementById("sensitive-id").value = "";
         document.getElementById("sensitive-category").value = selectedSensitiveCategory;
+        setupSensitiveFormFields(selectedSensitiveCategory);
         document.getElementById("sensitive-modal-title").textContent = `Nuevo Registro: ${selectedSensitiveCategory}`;
         document.getElementById("modal-sensitive").showModal();
     });
@@ -1523,6 +1524,29 @@ function deleteFlight(id) {
     }
 }
 
+// Configura los campos del formulario sensible según la categoría
+function setupSensitiveFormFields(category) {
+    const passportGroup = document.getElementById("passport-fields-group");
+    const genericGroup = document.getElementById("generic-content-group");
+    const fullname = document.getElementById("passport-fullname");
+    const number = document.getElementById("passport-number");
+    const content = document.getElementById("sensitive-content");
+    
+    if (category === "Pasaporte") {
+        passportGroup.classList.remove("hidden");
+        genericGroup.classList.add("hidden");
+        fullname.setAttribute("required", "true");
+        number.setAttribute("required", "true");
+        content.removeAttribute("required");
+    } else {
+        passportGroup.classList.add("hidden");
+        genericGroup.classList.remove("hidden");
+        fullname.removeAttribute("required");
+        number.removeAttribute("required");
+        content.setAttribute("required", "true");
+    }
+}
+
 // --- RENDERIZAR TAB 5: LOCKER SEGURO (DATOS SENSIBLES) ---
 function updateSensitiveCounters() {
     const categories = ["Pasaporte", "Hotel", "Auto", "Seguro", "Otro"];
@@ -1554,19 +1578,40 @@ function renderSensitiveItems() {
         const card = document.createElement("div");
         card.className = "sensitive-item-card";
         
+        let contentHtml = "";
+        if (item.category === "Pasaporte") {
+            try {
+                const data = JSON.parse(item.content);
+                contentHtml = `
+                    <div class="passport-detail-box" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px; color:var(--text-secondary);">
+                        <div><strong>Nombre:</strong> ${data.nombre || ""}</div>
+                        <div><strong>Nro Pasaporte:</strong> ${data.numero || ""}</div>
+                        <div><strong>Nacionalidad:</strong> ${data.nacionalidad || ""}</div>
+                        <div><strong>Vencimiento:</strong> ${data.vencimiento ? data.vencimiento.split("-").reverse().join("/") : ""}</div>
+                    </div>
+                `;
+            } catch (e) {
+                contentHtml = `<pre>${item.content}</pre>`;
+            }
+        } else {
+            contentHtml = `<pre>${item.content}</pre>`;
+        }
+        
         card.innerHTML = `
             <div class="sensitive-item-card-header">
                 <h4>${item.title}</h4>
                 <div class="card-action-buttons">
                     <button class="btn-edit-card" data-action="edit" title="Editar">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
                     <button class="btn-delete-card" data-action="delete" title="Eliminar">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                 </div>
             </div>
-            <pre>${item.content}</pre>
+            <div class="sensitive-item-card-body" style="padding-top: 8px;">
+                ${contentHtml}
+            </div>
         `;
         
         card.querySelector('[data-action="edit"]').addEventListener("click", () => openEditSensitiveModal(item.id));
@@ -1583,7 +1628,25 @@ function openEditSensitiveModal(id) {
     document.getElementById("sensitive-id").value = item.id;
     document.getElementById("sensitive-category").value = item.category;
     document.getElementById("sensitive-title").value = item.title;
-    document.getElementById("sensitive-content").value = item.content;
+    
+    setupSensitiveFormFields(item.category);
+    
+    if (item.category === "Pasaporte") {
+        try {
+            const data = JSON.parse(item.content);
+            document.getElementById("passport-fullname").value = data.nombre || "";
+            document.getElementById("passport-number").value = data.numero || "";
+            document.getElementById("passport-nationality").value = data.nacionalidad || "";
+            document.getElementById("passport-expiry").value = data.vencimiento || "";
+        } catch (e) {
+            document.getElementById("passport-fullname").value = "";
+            document.getElementById("passport-number").value = "";
+            document.getElementById("passport-nationality").value = "";
+            document.getElementById("passport-expiry").value = "";
+        }
+    } else {
+        document.getElementById("sensitive-content").value = item.content;
+    }
     
     document.getElementById("sensitive-modal-title").textContent = `Editar Registro: ${item.category}`;
     document.getElementById("modal-sensitive").showModal();
@@ -1592,8 +1655,19 @@ function openEditSensitiveModal(id) {
 function handleSensitiveSubmit(e) {
     const id = document.getElementById("sensitive-id").value;
     const title = document.getElementById("sensitive-title").value;
-    const content = document.getElementById("sensitive-content").value;
     const category = document.getElementById("sensitive-category").value;
+    
+    let content = "";
+    if (category === "Pasaporte") {
+        const nombre = document.getElementById("passport-fullname").value.trim();
+        const numero = document.getElementById("passport-number").value.trim();
+        const nacionalidad = document.getElementById("passport-nationality").value.trim();
+        const vencimiento = document.getElementById("passport-expiry").value;
+        
+        content = JSON.stringify({ nombre, numero, nacionalidad, vencimiento });
+    } else {
+        content = document.getElementById("sensitive-content").value;
+    }
     
     if (id) {
         const itemIdx = db.sensible.findIndex(s => s.id === id);

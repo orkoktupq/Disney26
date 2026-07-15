@@ -617,9 +617,32 @@
                 <label for="sensitive-title">Título del Registro</label>
                 <input type="text" id="sensitive-title" class="apple-input" placeholder="Ej: Pasaporte de Juanma, Reserva de auto..." required>
             </div>
-            <div class="form-group">
+            <!-- Campos específicos para Pasaportes -->
+            <div id="passport-fields-group" class="hidden">
+                <div class="form-group">
+                    <label for="passport-fullname">Nombre Completo (como figura en pasaporte)</label>
+                    <input type="text" id="passport-fullname" class="apple-input" placeholder="Ej: JUAN MANUEL LOPEZ">
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group flex-1">
+                        <label for="passport-number">Número de Pasaporte</label>
+                        <input type="text" id="passport-number" class="apple-input" placeholder="Ej: AAA123456">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="passport-nationality">Nacionalidad</label>
+                        <input type="text" id="passport-nationality" class="apple-input" placeholder="Ej: Argentina">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="passport-expiry">Fecha de Vencimiento</label>
+                    <input type="date" id="passport-expiry" class="apple-input">
+                </div>
+            </div>
+
+            <!-- Campo genérico para otras categorías -->
+            <div id="generic-content-group" class="form-group">
                 <label for="sensitive-content">Detalles / Información</label>
-                <textarea id="sensitive-content" class="apple-textarea" placeholder="Escribe los números de reserva, claves, fechas de vencimiento..." rows="5" required></textarea>
+                <textarea id="sensitive-content" class="apple-textarea" placeholder="Escribe los números de reserva, claves, fechas de vencimiento..." rows="5"></textarea>
             </div>
             <div class="form-actions">
                 <button type="submit" class="apple-btn-primary">Guardar</button>
