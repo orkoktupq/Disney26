@@ -9,6 +9,19 @@ const SUPABASE_CONFIG = {
     anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhbHl6a3F6Zmhxd2Z6bnhlZ2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjE4OTUsImV4cCI6MjA5MjY5Nzg5NX0.pNQog1YLK3cOJps9KQUKxYB6JiAWxn6V1Gm-PKw_Au4"
 };
 
+// Helper para extraer el emoji y el título de un día del itinerario
+function extractEmojiAndTitle(fullTitle) {
+    if (!fullTitle) return { emoji: "📅", title: "" };
+    const emojiRegex = /[\s]*([\p{Emoji_Presentation}\p{Emoji}\u200d\uFE0F]+)$/u;
+    const match = fullTitle.match(emojiRegex);
+    if (match) {
+        const emoji = match[1];
+        const cleanTitle = fullTitle.replace(emojiRegex, "").trim();
+        return { emoji, title: cleanTitle };
+    }
+    return { emoji: "📅", title: fullTitle.trim() };
+}
+
 let supabaseClient = null;
 
 // --- DATOS INICIALES REALISTAS DE FACTO (FALLBACK LOCAL) ---
@@ -367,21 +380,26 @@ function setupEventListeners() {
         });
     });
 
-    // Botones de emoji rápidos en el modal del itinerario
-    document.querySelectorAll(".emoji-btn").forEach(btn => {
+    // Abrir modal selector de emoji al presionar el botón de icono en el itinerario
+    const emojiTriggerBtn = document.getElementById("btn-select-title-emoji");
+    if (emojiTriggerBtn) {
+        emojiTriggerBtn.addEventListener("click", () => {
+            const pickerModal = document.getElementById("modal-emoji-picker");
+            if (pickerModal) pickerModal.showModal();
+        });
+    }
+
+    // Seleccionar emoji del modal e insertarlo en el botón disparador
+    document.querySelectorAll(".picker-emoji-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const emoji = btn.getAttribute("data-emoji");
-            const input = document.getElementById("itinerary-title");
-            if (input) {
-                let title = input.value;
-                const emojiRegex = /[\s]*[\p{Emoji_Presentation}\p{Emoji}\u200d\uFE0F]+$/u;
-                if (emojiRegex.test(title)) {
-                    title = title.replace(emojiRegex, " " + emoji);
-                } else {
-                    title = title.trim() + " " + emoji;
-                }
-                input.value = title;
+            const trigger = document.getElementById("btn-select-title-emoji");
+            if (trigger) {
+                trigger.textContent = emoji;
+                trigger.setAttribute("data-emoji", emoji);
             }
+            const pickerModal = document.getElementById("modal-emoji-picker");
+            if (pickerModal) pickerModal.close();
         });
     });
 
@@ -576,11 +594,19 @@ function renderCalendarList() {
         const card = document.createElement("div");
         card.className = "calendar-card";
         
-        let parkBadgeHtml = "";
-        if (day.is_park_day && day.park_name) {
-            const isDisney = ["Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", "Typhoon Lagoon", "Blizzard Beach"].includes(day.park_name);
-            const badgeClass = isDisney ? "park-badge disney" : "park-badge universal";
-            parkBadgeHtml = `<span class="${badgeClass}">${day.park_name}</span>`;
+
+        
+        const { emoji, title } = extractEmojiAndTitle(day.title);
+        
+        let badgesHtml = "";
+        if (day.park_name) {
+            const activitiesList = day.park_name.split(", ").filter(Boolean);
+            activitiesList.forEach(act => {
+                const isDisney = ["Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", "Typhoon Lagoon", "Blizzard Beach"].includes(act);
+                const isUniversal = ["Universal Studios", "Islands of Adventure", "Volcano Bay"].includes(act);
+                const badgeClass = isDisney ? "park-badge disney" : (isUniversal ? "park-badge universal" : "park-badge general");
+                badgesHtml += `<span class="${badgeClass}">${act}</span>`;
+            });
         }
         
         card.innerHTML = `
@@ -588,13 +614,16 @@ function renderCalendarList() {
                 <span class="date-day">${dayNum}</span>
                 <span class="date-month">${monthStr}</span>
             </div>
+            <div class="card-emoji-left">${emoji}</div>
             <div class="card-info">
                 <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight:600;">${weekdayStr}</span>
-                <h3>${day.title}</h3>
+                <h3>${title}</h3>
+                <div class="card-badges-container">
+                    ${badgesHtml}
+                </div>
                 <p>${day.notes || "Sin planes definidos todavía..."}</p>
             </div>
             <div class="card-meta">
-                ${parkBadgeHtml}
                 <span class="arrow-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </span>
@@ -611,28 +640,24 @@ function openItineraryEditModal(id) {
     if (!day) return;
     
     document.getElementById("itinerary-id").value = day.id;
-    document.getElementById("itinerary-title").value = day.title;
+    
+    // Extraer emoji y título limpio
+    const { emoji, title } = extractEmojiAndTitle(day.title);
+    document.getElementById("itinerary-title").value = title;
     document.getElementById("itinerary-notes").value = day.notes || "";
     
-    const isParkCheck = document.getElementById("itinerary-is-park");
-    const parkSelectGroup = document.getElementById("itinerary-park-select-group");
-    
-    isParkCheck.checked = day.is_park_day;
-    if (day.is_park_day) {
-        parkSelectGroup.classList.remove("hidden");
-        document.getElementById("itinerary-park-name").value = day.park_name || "Magic Kingdom";
-    } else {
-        parkSelectGroup.classList.add("hidden");
+    // Configurar botón selector de emoji
+    const emojiBtn = document.getElementById("btn-select-title-emoji");
+    if (emojiBtn) {
+        emojiBtn.textContent = emoji;
+        emojiBtn.setAttribute("data-emoji", emoji);
     }
     
-    // Toggle selector de parques al cambiar checkbox
-    isParkCheck.onchange = () => {
-        if (isParkCheck.checked) {
-            parkSelectGroup.classList.remove("hidden");
-        } else {
-            parkSelectGroup.classList.add("hidden");
-        }
-    };
+    // Configurar los checkboxes de actividades
+    const selectedActivities = day.park_name ? day.park_name.split(", ") : [];
+    document.querySelectorAll("input[name='activity-item']").forEach(chk => {
+        chk.checked = selectedActivities.includes(chk.value);
+    });
     
     document.getElementById("itinerary-modal-title").textContent = `Editar: ${day.date.split("-").reverse().slice(0, 2).join("/")}`;
     document.getElementById("modal-itinerary").showModal();
@@ -643,12 +668,31 @@ function handleItinerarySubmit(e) {
     const dayIndex = db.itinerary.findIndex(item => item.id === id);
     if (dayIndex === -1) return;
     
-    const isPark = document.getElementById("itinerary-is-park").checked;
+    // Leer el título limpio y el emoji
+    const cleanTitle = document.getElementById("itinerary-title").value.trim();
+    const emojiBtn = document.getElementById("btn-select-title-emoji");
+    const emoji = emojiBtn ? emojiBtn.getAttribute("data-emoji") || "📅" : "📅";
     
-    db.itinerary[dayIndex].title = document.getElementById("itinerary-title").value;
+    // Combinar en el campo de título original
+    db.itinerary[dayIndex].title = cleanTitle + " " + emoji;
     db.itinerary[dayIndex].notes = document.getElementById("itinerary-notes").value;
-    db.itinerary[dayIndex].is_park_day = isPark;
-    db.itinerary[dayIndex].park_name = isPark ? document.getElementById("itinerary-park-name").value : "";
+    
+    // Recopilar actividades seleccionadas
+    const checkedActivities = [];
+    document.querySelectorAll("input[name='activity-item']:checked").forEach(chk => {
+        checkedActivities.push(chk.value);
+    });
+    
+    // ¿Es día de parque temático? (Cualquiera de los parques de Disney o Universal)
+    const themeParks = [
+        "Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", 
+        "Typhoon Lagoon", "Blizzard Beach", 
+        "Universal Studios", "Islands of Adventure", "Volcano Bay"
+    ];
+    const hasThemePark = checkedActivities.some(act => themeParks.includes(act));
+    
+    db.itinerary[dayIndex].is_park_day = hasThemePark;
+    db.itinerary[dayIndex].park_name = checkedActivities.join(", ");
     db.itinerary[dayIndex].updated_at = new Date().toISOString();
     
     saveLocal("itinerary");
@@ -658,7 +702,7 @@ function handleItinerarySubmit(e) {
 // --- RENDERIZAR TAB 2: CHECKLIST DE PARQUES & DISTANCIAS ---
 function renderParkChecklist() {
     // 1. Encontrar qué día se asignó este parque
-    const dayAssigned = db.itinerary.find(d => d.is_park_day && d.park_name === activePark);
+    const dayAssigned = db.itinerary.find(d => d.is_park_day && d.park_name.split(", ").includes(activePark));
     const dateSelect = document.getElementById("park-date-select");
     
     // Popular fechas disponibles
@@ -742,12 +786,22 @@ function renderParkChecklist() {
 function handleParkDateChange(e) {
     const selectedDate = e.target.value;
     
+    const themeParks = [
+        "Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", 
+        "Typhoon Lagoon", "Blizzard Beach", 
+        "Universal Studios", "Islands of Adventure", "Volcano Bay"
+    ];
+    
     // Primero, remover este parque de cualquier otro día
     db.itinerary.forEach((d, idx) => {
-        if (d.park_name === activePark) {
-            db.itinerary[idx].is_park_day = false;
-            db.itinerary[idx].park_name = "";
-            db.itinerary[idx].updated_at = new Date().toISOString();
+        if (d.park_name) {
+            const list = d.park_name.split(", ");
+            if (list.includes(activePark)) {
+                const newList = list.filter(p => p !== activePark);
+                db.itinerary[idx].park_name = newList.join(", ");
+                db.itinerary[idx].is_park_day = newList.some(act => themeParks.includes(act));
+                db.itinerary[idx].updated_at = new Date().toISOString();
+            }
         }
     });
     
@@ -755,8 +809,12 @@ function handleParkDateChange(e) {
     if (selectedDate) {
         const dayIdx = db.itinerary.findIndex(d => d.date === selectedDate);
         if (dayIdx !== -1) {
+            let list = db.itinerary[dayIdx].park_name ? db.itinerary[dayIdx].park_name.split(", ") : [];
+            if (!list.includes(activePark)) {
+                list.push(activePark);
+            }
+            db.itinerary[dayIdx].park_name = list.join(", ");
             db.itinerary[dayIdx].is_park_day = true;
-            db.itinerary[dayIdx].park_name = activePark;
             db.itinerary[dayIdx].updated_at = new Date().toISOString();
         }
     }

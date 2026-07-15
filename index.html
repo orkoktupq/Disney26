@@ -269,54 +269,136 @@
         </div>
         <form id="form-itinerary" method="dialog" class="dialog-form">
             <input type="hidden" id="itinerary-id">
-            <div class="form-group">
-                <label for="itinerary-title">Título del Día</label>
-                <input type="text" id="itinerary-title" class="apple-input" placeholder="Ej: Magic Kingdom 🏰" required>
-                <div class="emoji-selector-label">Iconos rápidos (cambia o agrega al final):</div>
-                <div class="emoji-selector-grid">
-                    <button type="button" class="emoji-btn" data-emoji="🏰">🏰</button>
-                    <button type="button" class="emoji-btn" data-emoji="🚀">🚀</button>
-                    <button type="button" class="emoji-btn" data-emoji="🎬">🎬</button>
-                    <button type="button" class="emoji-btn" data-emoji="🦖">🦖</button>
-                    <button type="button" class="emoji-btn" data-emoji="🌊">🌊</button>
-                    <button type="button" class="emoji-btn" data-emoji="🏄‍♂️">🏄‍♂️</button>
-                    <button type="button" class="emoji-btn" data-emoji="⛷️">⛷️</button>
-                    <button type="button" class="emoji-btn" data-emoji="🛍️">🛍️</button>
-                    <button type="button" class="emoji-btn" data-emoji="✈️">✈️</button>
-                    <button type="button" class="emoji-btn" data-emoji="🎒">🎒</button>
-                    <button type="button" class="emoji-btn" data-emoji="🏨">🏨</button>
-                    <button type="button" class="emoji-btn" data-emoji="🚗">🚗</button>
-                    <button type="button" class="emoji-btn" data-emoji="🍽️">🍽️</button>
-                    <button type="button" class="emoji-btn" data-emoji="☀️">☀️</button>
-                    <button type="button" class="emoji-btn" data-emoji="🎢">🎢</button>
+            <div class="form-group-row align-center">
+                <div class="emoji-picker-container">
+                    <label>Icono</label>
+                    <button type="button" id="btn-select-title-emoji" class="emoji-picker-trigger-btn">📅</button>
+                </div>
+                <div class="form-group flex-1">
+                    <label for="itinerary-title">Título del Día</label>
+                    <input type="text" id="itinerary-title" class="apple-input" placeholder="Ej: Llegada a Orlando" required>
                 </div>
             </div>
             <div class="form-group">
                 <label for="itinerary-notes">Notas / Agenda</label>
                 <textarea id="itinerary-notes" class="apple-textarea" placeholder="¿Qué planes hay para hoy?..." rows="4"></textarea>
             </div>
-            <div class="form-group row-checkbox">
-                <input type="checkbox" id="itinerary-is-park">
-                <label for="itinerary-is-park">¿Es día de parque temático?</label>
-            </div>
-            <div class="form-group hidden" id="itinerary-park-select-group">
-                <label for="itinerary-park-name">Seleccionar Parque</label>
-                <select id="itinerary-park-name" class="apple-select">
-                    <option value="Magic Kingdom">Magic Kingdom 🏰</option>
-                    <option value="Epcot">Epcot 🚀</option>
-                    <option value="Hollywood Studios">Hollywood Studios 🎬</option>
-                    <option value="Animal Kingdom">Animal Kingdom 🌳</option>
-                    <option value="Universal Studios">Universal Studios 🎬</option>
-                    <option value="Islands of Adventure">Islands of Adventure 🦖</option>
-                    <option value="Volcano Bay">Volcano Bay 🌊</option>
-                    <option value="Typhoon Lagoon">Typhoon Lagoon 🏄‍♂️</option>
-                    <option value="Blizzard Beach">Blizzard Beach ⛷️</option>
-                </select>
+            <div class="form-group">
+                <label>Actividades / Parques del Día</label>
+                <div class="activities-checkbox-grid">
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Magic Kingdom">
+                        <span>Magic Kingdom 🏰</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Epcot">
+                        <span>Epcot 🚀</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Hollywood Studios">
+                        <span>Hollywood Studios 🎬</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Animal Kingdom">
+                        <span>Animal Kingdom 🌳</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Typhoon Lagoon">
+                        <span>Typhoon Lagoon 🏄‍♂️</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Blizzard Beach">
+                        <span>Blizzard Beach ⛷️</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Universal Studios">
+                        <span>Universal Studios 🎬</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Islands of Adventure">
+                        <span>Islands of Adventure 🦖</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Volcano Bay">
+                        <span>Volcano Bay 🌊</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Compras / Shopping">
+                        <span>Compras 🛍️</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Vuelo / Traslado">
+                        <span>Vuelo ✈️</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Hotel / Check-in">
+                        <span>Hotel 🏨</span>
+                    </label>
+                    <label class="activity-checkbox-label">
+                        <input type="checkbox" name="activity-item" value="Día de Descanso / Pileta">
+                        <span>Descanso / Pileta ☀️</span>
+                    </label>
+                </div>
             </div>
             <div class="form-actions">
                 <button type="submit" class="apple-btn-primary">Guardar Cambios</button>
             </div>
         </form>
+    </dialog>
+
+    <!-- DIÁLOGO SELECTOR DE EMOJI/ICONO (Estilo Apple iOS) -->
+    <dialog id="modal-emoji-picker" class="apple-dialog">
+        <div class="dialog-header">
+            <h3>Seleccionar Icono</h3>
+            <button class="btn-close-dialog" onclick="document.getElementById('modal-emoji-picker').close()">✕</button>
+        </div>
+        <div class="emoji-categories-container">
+            <div class="emoji-category">
+                <h4>Parques y Atracciones</h4>
+                <div class="emoji-grid">
+                    <button type="button" class="picker-emoji-btn" data-emoji="🏰">🏰</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🚀">🚀</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🎬">🎬</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🦖">🦖</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🌊">🌊</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🏄‍♂️">🏄‍♂️</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="⛷️">⛷️</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🎢">🎢</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🎡">🎡</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🎟️">🎟️</button>
+                </div>
+            </div>
+            <div class="emoji-category">
+                <h4>Vacaciones y Viajes</h4>
+                <div class="emoji-grid">
+                    <button type="button" class="picker-emoji-btn" data-emoji="✈️">✈️</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🎒">🎒</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🏨">🏨</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🚗">🚗</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🛍️">🛍️</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="☀️">☀️</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🏖️">🏖️</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🍹">🍹</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="📸">📸</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🗺️">🗺️</button>
+                </div>
+            </div>
+            <div class="emoji-category">
+                <h4>Comidas y Otros</h4>
+                <div class="emoji-grid">
+                    <button type="button" class="picker-emoji-btn" data-emoji="🍽️">🍽️</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🍕">🍕</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🍔">🍔</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🍦">🍦</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🥤">🥤</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji=" popcorn ">🍿</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="📅">📅</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="✨">✨</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="🎉">🎉</button>
+                    <button type="button" class="picker-emoji-btn" data-emoji="❤️">❤️</button>
+                </div>
+            </div>
+        </div>
     </dialog>
 
     <!-- MODAL DE DIÁLOGO: AGREGAR ATRACCIÓN -->
