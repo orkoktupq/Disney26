@@ -168,42 +168,14 @@
                     <div class="documents-header">
                         <p class="documents-subheader">Información importante, números de pasaporte y reservas seguras localmente.</p>
                     </div>
-                    <div class="sensitive-categories">
-                        <button class="sensitive-cat-card" data-cat="Pasaporte">
-                            <div class="cat-icon">🪪</div>
-                            <div class="cat-info">
-                                <h4>Pasaportes</h4>
-                                <p id="cnt-pasaporte">0 documentos</p>
-                            </div>
+                    <!-- Botón para agregar nueva categoría -->
+                    <div style="display:flex; justify-content:flex-end; padding:0 16px 12px 16px;">
+                        <button class="apple-btn-secondary btn-small" id="btn-add-sensitive-category" style="display:flex; align-items:center; gap:6px;">
+                            <span>+ Nueva Categoría</span>
                         </button>
-                        <button class="sensitive-cat-card" data-cat="Hotel">
-                            <div class="cat-icon">🏨</div>
-                            <div class="cat-info">
-                                <h4>Hoteles</h4>
-                                <p id="cnt-hotel">0 reservas</p>
-                            </div>
-                        </button>
-                        <button class="sensitive-cat-card" data-cat="Auto">
-                            <div class="cat-icon">🚗</div>
-                            <div class="cat-info">
-                                <h4>Alquiler de Auto</h4>
-                                <p id="cnt-auto">0 reservas</p>
-                            </div>
-                        </button>
-                        <button class="sensitive-cat-card" data-cat="Seguro">
-                            <div class="cat-icon">🏥</div>
-                            <div class="cat-info">
-                                <h4>Asistencia Médica</h4>
-                                <p id="cnt-seguro">0 pólizas</p>
-                            </div>
-                        </button>
-                        <button class="sensitive-cat-card" data-cat="Otro">
-                            <div class="cat-icon">📁</div>
-                            <div class="cat-info">
-                                <h4>Otros Datos</h4>
-                                <p id="cnt-otro">0 registros</p>
-                            </div>
-                        </button>
+                    </div>
+                    <div class="sensitive-categories" id="sensitive-categories-grid">
+                        <!-- Generado dinámicamente -->
                     </div>
 
                     <!-- Detalle de la categoría seleccionada (Slide down panel) -->
@@ -639,13 +611,128 @@
                 </div>
             </div>
 
-            <!-- Campo genérico para otras categorías -->
-            <div id="generic-content-group" class="form-group">
-                <label for="sensitive-content">Detalles / Información</label>
-                <textarea id="sensitive-content" class="apple-textarea" placeholder="Escribe los números de reserva, claves, fechas de vencimiento..." rows="5"></textarea>
+            <!-- Campos específicos para Hoteles -->
+            <div id="hotel-fields-group" class="hidden">
+                <div class="form-group">
+                    <label for="hotel-name">Nombre del Hotel</label>
+                    <input type="text" id="hotel-name" class="apple-input" placeholder="Ej: Cabana Bay Beach Resort">
+                </div>
+                <div class="form-group">
+                    <label for="hotel-address">Dirección / Ubicación</label>
+                    <input type="text" id="hotel-address" class="apple-input" placeholder="Ej: 6550 Adventure Way, Orlando">
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group flex-1">
+                        <label for="hotel-checkin">Fecha de Check-in</label>
+                        <input type="date" id="hotel-checkin" class="apple-input">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="hotel-checkout">Fecha de Check-out</label>
+                        <input type="date" id="hotel-checkout" class="apple-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="hotel-code">Código de Reserva</label>
+                    <input type="text" id="hotel-code" class="apple-input" placeholder="Ej: CONF123456">
+                </div>
+            </div>
+
+            <!-- Campos específicos para Alquiler de Auto -->
+            <div id="auto-fields-group" class="hidden">
+                <div class="form-group-row">
+                    <div class="form-group flex-1">
+                        <label for="auto-company">Compañía de Alquiler</label>
+                        <input type="text" id="auto-company" class="apple-input" placeholder="Ej: Hertz, Alamo">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="auto-model">Modelo / Tipo de Auto</label>
+                        <input type="text" id="auto-model" class="apple-input" placeholder="Ej: SUV Mediana">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="auto-pickup">Lugar de Retiro</label>
+                    <input type="text" id="auto-pickup" class="apple-input" placeholder="Ej: Aeropuerto MCO (Hertz Counter)">
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group flex-1">
+                        <label for="auto-pickuptime">Fecha/Hora Retiro</label>
+                        <input type="datetime-local" id="auto-pickuptime" class="apple-input">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="auto-droptime">Fecha/Hora Devolución</label>
+                        <input type="datetime-local" id="auto-droptime" class="apple-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="auto-code">Código de Reserva</label>
+                    <input type="text" id="auto-code" class="apple-input" placeholder="Ej: HZ12345ABC">
+                </div>
+            </div>
+
+            <!-- Campos específicos para Asistencia Médica -->
+            <div id="seguro-fields-group" class="hidden">
+                <div class="form-group">
+                    <label for="seguro-company">Compañía de Asistencia</label>
+                    <input type="text" id="seguro-company" class="apple-input" placeholder="Ej: Assist Card">
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group flex-1">
+                        <label for="seguro-policy">Nro de Póliza / Voucher</label>
+                        <input type="text" id="seguro-policy" class="apple-input" placeholder="Ej: AX-12345-67">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="seguro-phone">Teléfono de Emergencias</label>
+                        <input type="tel" id="seguro-phone" class="apple-input" placeholder="Ej: +1 800-XXX-XXXX">
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group flex-1">
+                        <label for="seguro-start">Vigente Desde</label>
+                        <input type="date" id="seguro-start" class="apple-input">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="seguro-end">Vigente Hasta</label>
+                        <input type="date" id="seguro-end" class="apple-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos específicos para Otros / Nuevas Categorías -->
+            <div id="otro-fields-group" class="hidden">
+                <div class="form-group">
+                    <label for="otro-reference">Dato de Referencia / Código</label>
+                    <input type="text" id="otro-reference" class="apple-input" placeholder="Ej: Clave, Link, Código de barras...">
+                </div>
+            </div>
+
+            <!-- Campo Común: Notas Opcionales -->
+            <div class="form-group">
+                <label for="sensitive-notes">Notas (Opcional)</label>
+                <textarea id="sensitive-notes" class="apple-textarea" placeholder="Información adicional o aclaraciones..." rows="3"></textarea>
             </div>
             <div class="form-actions">
                 <button type="submit" class="apple-btn-primary">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Dialog para crear nueva categoría en Locker Seguro -->
+    <dialog id="modal-new-category" class="apple-dialog">
+        <div class="dialog-header">
+            <h2>Nueva Categoría</h2>
+            <button class="btn-close-dialog" commandfor="modal-new-category" command="close">✕</button>
+        </div>
+        <form id="form-new-category" method="dialog" class="dialog-form">
+            <div class="form-group">
+                <label for="new-category-name">Nombre de la Categoría</label>
+                <input type="text" id="new-category-name" class="apple-input" placeholder="Ej: Entradas, Parques, Vuelos..." required>
+            </div>
+            <div class="form-group">
+                <label for="new-category-icon">Icono (Emoji)</label>
+                <input type="text" id="new-category-icon" class="apple-input" placeholder="Ej: 🎟️" value="📁" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Crear Categoría</button>
             </div>
         </form>
     </dialog>

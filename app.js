@@ -258,6 +258,36 @@ let currentActiveTab = "calendario";
 let selectedSensitiveCategory = "";
 let activePark = "Magic Kingdom";
 
+let sensitiveCategories = [
+    { key: "Pasaporte", label: "Pasaportes", icon: "🪪", suffix: "documentos" },
+    { key: "Hotel", label: "Hoteles", icon: "🏨", suffix: "reservas" },
+    { key: "Auto", label: "Alquiler de Auto", icon: "🚗", suffix: "reservas" },
+    { key: "Seguro", label: "Asistencia Médica", icon: "🏥", suffix: "pólizas" },
+    { key: "Otro", label: "Otros Datos", icon: "📁", suffix: "registros" }
+];
+
+function loadCustomCategories() {
+    const stored = localStorage.getItem("disney2026_custom_categories");
+    if (stored) {
+        try {
+            const list = JSON.parse(stored);
+            list.forEach(cat => {
+                if (!sensitiveCategories.some(c => c.key === cat.key)) {
+                    sensitiveCategories.push(cat);
+                }
+            });
+        } catch (e) {
+            console.error("Error parsing custom categories", e);
+        }
+    }
+}
+
+function saveCustomCategories() {
+    const defaults = ["Pasaporte", "Hotel", "Auto", "Seguro", "Otro"];
+    const customs = sensitiveCategories.filter(c => !defaults.includes(c.key));
+    localStorage.setItem("disney2026_custom_categories", JSON.stringify(customs));
+}
+
 let db = {
     itinerary: [],
     attractions: [],
@@ -313,6 +343,7 @@ function initClock() {
 
 // --- BASE DE DATOS LOCAL (localStorage fallback) ---
 function initLocalDB() {
+    loadCustomCategories();
     const keys = ["itinerary", "attractions", "flights", "sensible", "tips"];
     keys.forEach(key => {
         const stored = localStorage.getItem(`disney2026_${key}`);
@@ -469,12 +500,34 @@ function setupEventListeners() {
         document.getElementById("modal-flight").showModal();
     });
 
-    // Categorías de Datos Sensibles
-    document.querySelectorAll(".sensitive-cat-card").forEach(card => {
-        card.addEventListener("click", () => {
-            selectedSensitiveCategory = card.getAttribute("data-cat");
-            openSensitiveCategoryPanel();
-        });
+    // Abrir modal nueva categoría
+    document.getElementById("btn-add-sensitive-category").addEventListener("click", () => {
+        document.getElementById("form-new-category").reset();
+        document.getElementById("modal-new-category").showModal();
+    });
+
+    // Submit de nueva categoría
+    document.getElementById("form-new-category").addEventListener("submit", (e) => {
+        const name = document.getElementById("new-category-name").value.trim();
+        const icon = document.getElementById("new-category-icon").value.trim() || "📁";
+        
+        if (name) {
+            // Verificar si ya existe
+            if (sensitiveCategories.some(c => c.key.toLowerCase() === name.toLowerCase())) {
+                alert("Esta categoría ya existe.");
+                e.preventDefault();
+                return;
+            }
+            
+            sensitiveCategories.push({
+                key: name,
+                label: name,
+                icon: icon,
+                suffix: "registros"
+            });
+            saveCustomCategories();
+            updateSensitiveCounters();
+        }
     });
 
     // Cerrar panel sensible
@@ -1526,34 +1579,77 @@ function deleteFlight(id) {
 
 // Configura los campos del formulario sensible según la categoría
 function setupSensitiveFormFields(category) {
-    const passportGroup = document.getElementById("passport-fields-group");
-    const genericGroup = document.getElementById("generic-content-group");
-    const fullname = document.getElementById("passport-fullname");
-    const number = document.getElementById("passport-number");
-    const content = document.getElementById("sensitive-content");
+    const groups = ["passport-fields-group", "hotel-fields-group", "auto-fields-group", "seguro-fields-group", "otro-fields-group"];
+    groups.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add("hidden");
+    });
+    
+    const inputsToClearRequired = [
+        "passport-fullname", "passport-number",
+        "hotel-name", "hotel-checkin",
+        "auto-company", "auto-pickuptime",
+        "seguro-company", "seguro-policy"
+    ];
+    inputsToClearRequired.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.removeAttribute("required");
+    });
     
     if (category === "Pasaporte") {
-        passportGroup.classList.remove("hidden");
-        genericGroup.classList.add("hidden");
-        fullname.setAttribute("required", "true");
-        number.setAttribute("required", "true");
-        content.removeAttribute("required");
+        document.getElementById("passport-fields-group").classList.remove("hidden");
+        document.getElementById("passport-fullname").setAttribute("required", "true");
+        document.getElementById("passport-number").setAttribute("required", "true");
+    } else if (category === "Hotel") {
+        document.getElementById("hotel-fields-group").classList.remove("hidden");
+        document.getElementById("hotel-name").setAttribute("required", "true");
+        document.getElementById("hotel-checkin").setAttribute("required", "true");
+    } else if (category === "Auto") {
+        document.getElementById("auto-fields-group").classList.remove("hidden");
+        document.getElementById("auto-company").setAttribute("required", "true");
+        document.getElementById("auto-pickuptime").setAttribute("required", "true");
+    } else if (category === "Seguro") {
+        document.getElementById("seguro-fields-group").classList.remove("hidden");
+        document.getElementById("seguro-company").setAttribute("required", "true");
+        document.getElementById("seguro-policy").setAttribute("required", "true");
     } else {
-        passportGroup.classList.add("hidden");
-        genericGroup.classList.remove("hidden");
-        fullname.removeAttribute("required");
-        number.removeAttribute("required");
-        content.setAttribute("required", "true");
+        document.getElementById("otro-fields-group").classList.remove("hidden");
     }
 }
 
 // --- RENDERIZAR TAB 5: LOCKER SEGURO (DATOS SENSIBLES) ---
 function updateSensitiveCounters() {
-    const categories = ["Pasaporte", "Hotel", "Auto", "Seguro", "Otro"];
-    categories.forEach(cat => {
-        const count = db.sensible.filter(s => s.category === cat).length;
-        const sub = cat === "Pasaporte" ? "documentos" : (cat === "Hotel" || cat === "Auto" ? "reservas" : (cat === "Seguro" ? "pólizas" : "registros"));
-        document.getElementById(`cnt-${cat.toLowerCase()}`).textContent = `${count} ${sub}`;
+    const grid = document.getElementById("sensitive-categories-grid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    
+    sensitiveCategories.forEach(cat => {
+        const count = db.sensible.filter(s => s.category === cat.key).length;
+        let suffixText = cat.suffix;
+        if (count === 1) {
+            if (cat.suffix === "documentos") suffixText = "documento";
+            else if (cat.suffix === "reservas") suffixText = "reserva";
+            else if (cat.suffix === "pólizas") suffixText = "póliza";
+            else suffixText = "registro";
+        }
+        
+        const card = document.createElement("button");
+        card.className = "sensitive-cat-card";
+        card.setAttribute("data-cat", cat.key);
+        card.innerHTML = `
+            <div class="cat-icon">${cat.icon}</div>
+            <div class="cat-info">
+                <h4>${cat.label}</h4>
+                <p>${count} ${suffixText}</p>
+            </div>
+        `;
+        
+        card.addEventListener("click", () => {
+            selectedSensitiveCategory = cat.key;
+            openSensitiveCategoryPanel();
+        });
+        
+        grid.appendChild(card);
     });
 }
 
@@ -1579,21 +1675,71 @@ function renderSensitiveItems() {
         card.className = "sensitive-item-card";
         
         let contentHtml = "";
-        if (item.category === "Pasaporte") {
-            try {
-                const data = JSON.parse(item.content);
+        try {
+            const data = JSON.parse(item.content);
+            const notesText = data.notas ? `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color); font-style:italic; color:var(--text-secondary); font-size:12.5px;">Nota: ${data.notas}</div>` : "";
+            
+            if (item.category === "Pasaporte") {
                 contentHtml = `
                     <div class="passport-detail-box" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px; color:var(--text-secondary);">
                         <div><strong>Nombre:</strong> ${data.nombre || ""}</div>
                         <div><strong>Nro Pasaporte:</strong> ${data.numero || ""}</div>
                         <div><strong>Nacionalidad:</strong> ${data.nacionalidad || ""}</div>
                         <div><strong>Vencimiento:</strong> ${data.vencimiento ? data.vencimiento.split("-").reverse().join("/") : ""}</div>
+                        ${notesText}
                     </div>
                 `;
-            } catch (e) {
-                contentHtml = `<pre>${item.content}</pre>`;
+            } else if (item.category === "Hotel") {
+                contentHtml = `
+                    <div class="hotel-detail-box" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px; color:var(--text-secondary);">
+                        <div><strong>Hotel:</strong> ${data.nombre || ""}</div>
+                        <div><strong>Ubicación:</strong> ${data.direccion || ""}</div>
+                        <div><strong>Check-in:</strong> ${data.checkin ? data.checkin.split("-").reverse().join("/") : ""}</div>
+                        <div><strong>Check-out:</strong> ${data.checkout ? data.checkout.split("-").reverse().join("/") : ""}</div>
+                        <div><strong>Reserva:</strong> <span style="font-family:monospace; background:var(--bg-secondary); padding:2px 6px; border-radius:4px; font-weight:600;">${data.codigo || ""}</span></div>
+                        ${notesText}
+                    </div>
+                `;
+            } else if (item.category === "Auto") {
+                let checkinDateStr = "";
+                if (data.fecha_retiro) {
+                    const rDate = new Date(data.fecha_retiro);
+                    checkinDateStr = isNaN(rDate.getTime()) ? data.fecha_retiro : rDate.toLocaleString('es-AR', {dateStyle:'short', timeStyle:'short'});
+                }
+                let checkoutDateStr = "";
+                if (data.fecha_devolucion) {
+                    const dDate = new Date(data.fecha_devolucion);
+                    checkoutDateStr = isNaN(dDate.getTime()) ? data.fecha_devolucion : dDate.toLocaleString('es-AR', {dateStyle:'short', timeStyle:'short'});
+                }
+                contentHtml = `
+                    <div class="auto-detail-box" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px; color:var(--text-secondary);">
+                        <div><strong>Rentadora:</strong> ${data.compania || ""} (${data.modelo || ""})</div>
+                        <div><strong>Lugar Retiro:</strong> ${data.retiro || ""}</div>
+                        <div><strong>Fecha Retiro:</strong> ${checkinDateStr}</div>
+                        <div><strong>Fecha Devolución:</strong> ${checkoutDateStr}</div>
+                        <div><strong>Reserva:</strong> <span style="font-family:monospace; background:var(--bg-secondary); padding:2px 6px; border-radius:4px; font-weight:600;">${data.codigo || ""}</span></div>
+                        ${notesText}
+                    </div>
+                `;
+            } else if (item.category === "Seguro") {
+                contentHtml = `
+                    <div class="seguro-detail-box" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px; color:var(--text-secondary);">
+                        <div><strong>Asistencia:</strong> ${data.compania || ""}</div>
+                        <div><strong>Póliza/Voucher:</strong> <span style="font-family:monospace; background:var(--bg-secondary); padding:2px 6px; border-radius:4px; font-weight:600;">${data.poliza || ""}</span></div>
+                        <div><strong>Emergencias:</strong> <a href="tel:${data.telefono || ""}" style="color:var(--apple-blue); text-decoration:none; font-weight:500;">${data.telefono || ""}</a></div>
+                        <div><strong>Vigencia:</strong> ${data.vigencia_desde ? data.vigencia_desde.split("-").reverse().join("/") : ""} al ${data.vigencia_hasta ? data.vigencia_hasta.split("-").reverse().join("/") : ""}</div>
+                        ${notesText}
+                    </div>
+                `;
+            } else {
+                contentHtml = `
+                    <div class="other-detail-box" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px; color:var(--text-secondary);">
+                        <div><strong>Referencia:</strong> ${data.referencia || ""}</div>
+                        ${notesText}
+                    </div>
+                `;
             }
-        } else {
+        } catch (e) {
             contentHtml = `<pre>${item.content}</pre>`;
         }
         
@@ -1630,22 +1776,57 @@ function openEditSensitiveModal(id) {
     document.getElementById("sensitive-title").value = item.title;
     
     setupSensitiveFormFields(item.category);
+    document.getElementById("sensitive-notes").value = "";
     
-    if (item.category === "Pasaporte") {
-        try {
-            const data = JSON.parse(item.content);
+    try {
+        const data = JSON.parse(item.content);
+        document.getElementById("sensitive-notes").value = data.notas || "";
+        
+        if (item.category === "Pasaporte") {
             document.getElementById("passport-fullname").value = data.nombre || "";
             document.getElementById("passport-number").value = data.numero || "";
             document.getElementById("passport-nationality").value = data.nacionalidad || "";
             document.getElementById("passport-expiry").value = data.vencimiento || "";
-        } catch (e) {
+        } else if (item.category === "Hotel") {
+            document.getElementById("hotel-name").value = data.nombre || "";
+            document.getElementById("hotel-address").value = data.direccion || "";
+            document.getElementById("hotel-checkin").value = data.checkin || "";
+            document.getElementById("hotel-checkout").value = data.checkout || "";
+            document.getElementById("hotel-code").value = data.codigo || "";
+        } else if (item.category === "Auto") {
+            document.getElementById("auto-company").value = data.compania || "";
+            document.getElementById("auto-model").value = data.modelo || "";
+            document.getElementById("auto-pickup").value = data.retiro || "";
+            document.getElementById("auto-pickuptime").value = data.fecha_retiro || "";
+            document.getElementById("auto-droptime").value = data.fecha_devolucion || "";
+            document.getElementById("auto-code").value = data.codigo || "";
+        } else if (item.category === "Seguro") {
+            document.getElementById("seguro-company").value = data.compania || "";
+            document.getElementById("seguro-policy").value = data.poliza || "";
+            document.getElementById("seguro-phone").value = data.telefono || "";
+            document.getElementById("seguro-start").value = data.vigencia_desde || "";
+            document.getElementById("seguro-end").value = data.vigencia_hasta || "";
+        } else {
+            document.getElementById("otro-reference").value = data.referencia || "";
+        }
+    } catch (e) {
+        if (item.category === "Pasaporte") {
             document.getElementById("passport-fullname").value = "";
-            document.getElementById("passport-number").value = "";
+            document.getElementById("passport-number").value = item.content || "";
             document.getElementById("passport-nationality").value = "";
             document.getElementById("passport-expiry").value = "";
+        } else if (item.category === "Hotel") {
+            document.getElementById("hotel-name").value = item.title;
+            document.getElementById("hotel-code").value = item.content || "";
+        } else if (item.category === "Auto") {
+            document.getElementById("auto-company").value = item.title;
+            document.getElementById("auto-code").value = item.content || "";
+        } else if (item.category === "Seguro") {
+            document.getElementById("seguro-company").value = item.title;
+            document.getElementById("seguro-policy").value = item.content || "";
+        } else {
+            document.getElementById("otro-reference").value = item.content || "";
         }
-    } else {
-        document.getElementById("sensitive-content").value = item.content;
     }
     
     document.getElementById("sensitive-modal-title").textContent = `Editar Registro: ${item.category}`;
@@ -1654,19 +1835,43 @@ function openEditSensitiveModal(id) {
 
 function handleSensitiveSubmit(e) {
     const id = document.getElementById("sensitive-id").value;
-    const title = document.getElementById("sensitive-title").value;
+    const title = document.getElementById("sensitive-title").value.trim();
     const category = document.getElementById("sensitive-category").value;
     
+    const notas = document.getElementById("sensitive-notes").value.trim();
     let content = "";
+    
     if (category === "Pasaporte") {
         const nombre = document.getElementById("passport-fullname").value.trim();
         const numero = document.getElementById("passport-number").value.trim();
         const nacionalidad = document.getElementById("passport-nationality").value.trim();
         const vencimiento = document.getElementById("passport-expiry").value;
-        
-        content = JSON.stringify({ nombre, numero, nacionalidad, vencimiento });
+        content = JSON.stringify({ nombre, numero, nacionalidad, vencimiento, notas });
+    } else if (category === "Hotel") {
+        const nombre = document.getElementById("hotel-name").value.trim();
+        const direccion = document.getElementById("hotel-address").value.trim();
+        const checkin = document.getElementById("hotel-checkin").value;
+        const checkout = document.getElementById("hotel-checkout").value;
+        const codigo = document.getElementById("hotel-code").value.trim();
+        content = JSON.stringify({ nombre, direccion, checkin, checkout, codigo, notas });
+    } else if (category === "Auto") {
+        const compania = document.getElementById("auto-company").value.trim();
+        const modelo = document.getElementById("auto-model").value.trim();
+        const retiro = document.getElementById("auto-pickup").value.trim();
+        const fecha_retiro = document.getElementById("auto-pickuptime").value;
+        const fecha_devolucion = document.getElementById("auto-droptime").value;
+        const codigo = document.getElementById("auto-code").value.trim();
+        content = JSON.stringify({ compania, modelo, retiro, fecha_retiro, fecha_devolucion, codigo, notas });
+    } else if (category === "Seguro") {
+        const compania = document.getElementById("seguro-company").value.trim();
+        const poliza = document.getElementById("seguro-policy").value.trim();
+        const telefono = document.getElementById("seguro-phone").value.trim();
+        const vigencia_desde = document.getElementById("seguro-start").value;
+        const vigencia_hasta = document.getElementById("seguro-end").value;
+        content = JSON.stringify({ compania, poliza, telefono, vigencia_desde, vigencia_hasta, notas });
     } else {
-        content = document.getElementById("sensitive-content").value;
+        const referencia = document.getElementById("otro-reference").value.trim();
+        content = JSON.stringify({ referencia, notas });
     }
     
     if (id) {
