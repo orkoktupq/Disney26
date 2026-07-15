@@ -949,16 +949,26 @@ function openTaskEditorModal(dayId, taskId) {
 
 // Envía el formulario de tarea/actividad
 function handleTaskSubmit() {
+    const titleInput = document.getElementById("task-title");
+    const timeInput = document.getElementById("task-time");
+    
+    if (!titleInput.checkValidity()) {
+        titleInput.reportValidity();
+        return;
+    }
+    if (!timeInput.checkValidity()) {
+        timeInput.reportValidity();
+        return;
+    }
+    
     const dayId = document.getElementById("task-day-id").value;
     const taskId = document.getElementById("task-id").value;
-    const title = document.getElementById("task-title").value.trim();
+    const title = titleInput.value.trim();
     const emojiBtn = document.getElementById("btn-select-task-emoji");
     const emoji = emojiBtn ? emojiBtn.getAttribute("data-emoji") || "📅" : "📅";
     const parkLink = document.getElementById("task-park-link").value;
-    const time = document.getElementById("task-time").value;
+    const time = timeInput.value;
     const notes = document.getElementById("task-notes").value.trim();
-    
-    if (!title) return;
     
     const day = db.itinerary.find(d => d.id === dayId);
     const { general_notes, activities } = getDayNotesAndActivities(day.notes);

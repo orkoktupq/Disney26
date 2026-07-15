@@ -273,65 +273,67 @@
                 <label for="itinerary-title">Título del Día</label>
                 <input type="text" id="itinerary-title" class="apple-input" placeholder="Ej: Llegada y parque" required>
             </div>
-            <div class="form-group">
-                <label for="itinerary-notes">Notas / Agenda</label>
-                <textarea id="itinerary-notes" class="apple-textarea" placeholder="¿Qué planes hay para hoy?..." rows="4"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Actividades / Parques del Día</label>
-                <div class="activities-checkbox-grid">
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Magic Kingdom">
-                        <span>Magic Kingdom 🏰</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Epcot">
-                        <span>Epcot 🚀</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Hollywood Studios">
-                        <span>Hollywood Studios 🎬</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Animal Kingdom">
-                        <span>Animal Kingdom 🌳</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Typhoon Lagoon">
-                        <span>Typhoon Lagoon 🏄‍♂️</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Blizzard Beach">
-                        <span>Blizzard Beach ⛷️</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Universal Studios">
-                        <span>Universal Studios 🎬</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Islands of Adventure">
-                        <span>Islands of Adventure 🦖</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Volcano Bay">
-                        <span>Volcano Bay 🌊</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Compras / Shopping">
-                        <span>Compras 🛍️</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Vuelo / Traslado">
-                        <span>Vuelo ✈️</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Hotel / Check-in">
-                        <span>Hotel 🏨</span>
-                    </label>
-                    <label class="activity-checkbox-label">
-                        <input type="checkbox" name="activity-item" value="Día de Descanso / Pileta">
-                        <span>Descanso / Pileta ☀️</span>
-                    </label>
+            <div style="display: none;">
+                <div class="form-group">
+                    <label for="itinerary-notes">Notas / Agenda</label>
+                    <textarea id="itinerary-notes" class="apple-textarea" placeholder="¿Qué planes hay para hoy?..." rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Actividades / Parques del Día</label>
+                    <div class="activities-checkbox-grid">
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Magic Kingdom">
+                            <span>Magic Kingdom 🏰</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Epcot">
+                            <span>Epcot 🚀</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Hollywood Studios">
+                            <span>Hollywood Studios 🎬</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Animal Kingdom">
+                            <span>Animal Kingdom 🌳</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Typhoon Lagoon">
+                            <span>Typhoon Lagoon 🏄‍♂️</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Blizzard Beach">
+                            <span>Blizzard Beach ⛷️</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Universal Studios">
+                            <span>Universal Studios 🎬</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Islands of Adventure">
+                            <span>Islands of Adventure 🦖</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Volcano Bay">
+                            <span>Volcano Bay 🌊</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Compras / Shopping">
+                            <span>Compras 🛍️</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Vuelo / Traslado">
+                            <span>Vuelo ✈️</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Hotel / Check-in">
+                            <span>Hotel 🏨</span>
+                        </label>
+                        <label class="activity-checkbox-label">
+                            <input type="checkbox" name="activity-item" value="Día de Descanso / Pileta">
+                            <span>Descanso / Pileta ☀️</span>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="form-actions">
@@ -434,8 +436,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="task-time">Horario (Opcional)</label>
-                <input type="time" id="task-time" class="apple-input">
+                <label for="task-time">Horario</label>
+                <input type="time" id="task-time" class="apple-input" required>
             </div>
             <div class="form-group">
                 <label for="task-notes">Notas / Descripción (Opcional)</label>
