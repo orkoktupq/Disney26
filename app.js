@@ -487,7 +487,7 @@ function setupEventListeners() {
     document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const tabName = btn.getAttribute("data-tab");
-            switchTab(tabName);
+            switchTab(tabName, true);
         });
     });
 
@@ -681,11 +681,13 @@ function unlockApp() {
 }
 
 // --- CONTROL DE NAVEGACIÓN TAB BAR ---
-function switchTab(tabName) {
-    currentActiveTab = tabName;
+function switchTab(tabName, isUserClick = false) {
+    // Solo volver al inicio (resetear vista a categorías) si el usuario hace click explícito y cambia de pestaña
+    if (isUserClick && tabName !== currentActiveTab) {
+        toggleSensitiveViews(false);
+    }
     
-    // Siempre volver al inicio de la página (ej: ocultar detalle de Locker Seguro)
-    toggleSensitiveViews(false);
+    currentActiveTab = tabName;
     
     // Cambiar clase activa en Tab Buttons
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -727,7 +729,13 @@ function switchTab(tabName) {
     else if (tabName === "tips") renderTipsList("all");
     else if (tabName === "vuelos") renderFlightsList();
     else if (tabName === "compras") renderShoppingList();
-    else if (tabName === "sensible") updateSensitiveCounters();
+    else if (tabName === "sensible") {
+        updateSensitiveCounters();
+        const detailPanel = document.getElementById("sensitive-detail-panel");
+        if (detailPanel && !detailPanel.classList.contains("hidden")) {
+            renderSensitiveItems();
+        }
+    }
 }
 
 function handleLogout() {
