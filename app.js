@@ -656,18 +656,6 @@ function renderCalendarList() {
         
         const { general_notes, activities } = getDayNotesAndActivities(day.notes);
         
-        // Renderizar etiquetas de actividades / parques
-        let badgesHtml = "";
-        if (day.park_name) {
-            const activitiesList = day.park_name.split(", ").filter(Boolean);
-            activitiesList.forEach(act => {
-                const isDisney = ["Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", "Typhoon Lagoon", "Blizzard Beach"].includes(act);
-                const isUniversal = ["Universal Studios", "Islands of Adventure", "Volcano Bay"].includes(act);
-                const badgeClass = isDisney ? "park-badge disney" : (isUniversal ? "park-badge universal" : "park-badge general");
-                badgesHtml += `<span class="${badgeClass}">${act}</span>`;
-            });
-        }
-        
         // Cabecera del día (toda la fila de arriba)
         const header = document.createElement("div");
         header.className = "card-header";
@@ -679,9 +667,6 @@ function renderCalendarList() {
             <div class="card-info" style="flex: 1; margin-left: 12px;">
                 <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight:600;">${weekdayStr}</span>
                 <h3>${day.title || "Sin título"}</h3>
-                <div class="card-badges-container">
-                    ${badgesHtml}
-                </div>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <button class="btn-edit-day" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:6px; display:flex;" title="Editar Día">
