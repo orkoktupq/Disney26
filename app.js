@@ -102,9 +102,14 @@ const DEFAULT_SENSIBLE = [
 const DEFAULT_TIPS = [
     { id: "t1", category: "Disney", title: "Virtual Queue a las 7:00 AM 📱", content: "Para entrar a la fila virtual de TRON Lightcycle / Run o Cosmic Rewind, abre la app My Disney Experience a las 6:58 AM. Ve a \"Virtual Queues\", selecciona a tu grupo y dale click a \"Refresh\" exactamente a las 7:00:00 AM. Si no consigues, hay otra oportunidad a las 1:00 PM estando dentro del parque.", author: "Juanma", updated_at: "2026-07-14T08:00:00Z" },
     { id: "t2", category: "Universal", title: "Estrategia para Hagrid's Motorbike 🏍️", content: "Esta atracción es la más popular de Universal y no ofrece fila Express normal. La mejor estrategia es hacer \"Rope Drop\" (llegar 45 minutos antes de la apertura oficial del parque Islands of Adventure) e ir corriendo directamente hacia allí. La otra buena opción es hacer la fila al final del día, 15 minutos antes del cierre del parque.", author: "Sofi", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "t3", category: "Disney", title: "Ahorra batería con el modo Ahorro de Energía 🔋", content: "La app My Disney Experience consume muchísima batería por usar GPS continuamente para los mapas y Lightning Lanes. Pon tu iPhone en \"Modo de bajo consumo\" desde la mañana, lleva una batería portátil (Powerbank) potente en la mochila, y apaga el Wi-Fi si notas que la señal pública del parque está muy inestable.", author: "Juanma", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "t3", category: "Disney", title: "Ahorra batería con el modo Ahorro de Energía 🔋", content: "La app My Disney Experience consume muchísima batería por usar GPS continuamente para los mapas and Lightning Lanes. Pon tu iPhone en \"Modo de bajo consumo\" desde la mañana, lleva una batería portátil (Powerbank) potente en la mochila, y apaga el Wi-Fi si notas que la señal pública del parque está muy inestable.", author: "Juanma", updated_at: "2026-07-14T08:00:00Z" },
     { id: "t4", category: "General", title: "Evitar las horas de calor pico (12 PM - 3 PM) ☀️", content: "Julio en Orlando es extremadamente caluroso y húmedo, con lluvias rápidas por la tarde. Usa las horas del mediodía para comer en restaurantes con aire acondicionado, ver shows en teatros cerrados (como Indiana Jones en Hollywood Studios o PhilharMagic en Magic Kingdom) o volver al hotel a bañarse en la pileta y regresar al parque al atardecer.", author: "Sofi", updated_at: "2026-07-14T08:00:00Z" },
     { id: "t5", category: "Universal", title: "Vasos refill de Coca-Cola Freestyle 🥤", content: "Vale mucho la pena comprar el vaso recargable \"Coca-Cola Freestyle\" en Universal. Pagas un precio fijo por día y puedes recargar bebidas en decenas de máquinas automáticas cada 10 minutos. Ideal para mantenerse hidratado con el calor de julio.", author: "Juanma", updated_at: "2026-07-14T08:00:00Z" }
+];
+
+const DEFAULT_COMPRAS = [
+    { id: "c1", profile: "Sofi", title: "Termo Stanley Rosa 🥤", location: "Target", is_completed: false, notes: "De 40oz con manija.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "c2", profile: "Juanma", title: "Zapatillas Running 👟", location: "Premium Outlets", is_completed: false, notes: "Talle US 10 en Nike o Adidas.", updated_at: "2026-07-14T08:00:00Z" }
 ];
 
 // --- PRESETS DE ATRACCIONES POR PARQUE ---
@@ -257,6 +262,7 @@ let currentPasscode = "";
 let currentActiveTab = "calendario";
 let selectedSensitiveCategory = "";
 let activePark = "Magic Kingdom";
+let activeShoppingProfile = "Sofi";
 
 let sensitiveCategories = [
     { key: "Pasaporte", label: "Pasaportes", icon: "🪪", suffix: "documentos" },
@@ -302,6 +308,7 @@ let db = {
     flights: [],
     sensible: [],
     tips: [],
+    compras: [],
     dirty: {} // Registra elementos que necesitan sincronizarse con Supabase
 };
 
@@ -396,7 +403,7 @@ function initLocalDB() {
         }
     }
 
-    const keys = ["itinerary", "attractions", "flights", "sensible", "tips"];
+    const keys = ["itinerary", "attractions", "flights", "sensible", "tips", "compras"];
     keys.forEach(key => {
         const stored = localStorage.getItem(`disney2026_${key}`);
         if (stored) {
@@ -409,6 +416,7 @@ function initLocalDB() {
             else if (key === "flights") defaultVal = DEFAULT_FLIGHTS;
             else if (key === "sensible") defaultVal = DEFAULT_SENSIBLE;
             else if (key === "tips") defaultVal = DEFAULT_TIPS;
+            else if (key === "compras") defaultVal = DEFAULT_COMPRAS;
             
             db[key] = defaultVal;
             localStorage.setItem(`disney2026_${key}`, JSON.stringify(defaultVal));
@@ -617,7 +625,7 @@ function setupEventListeners() {
 
     // Cerrar panel sensible
     document.getElementById("btn-close-sensitive-panel").addEventListener("click", () => {
-        document.getElementById("sensitive-detail-panel").classList.add("hidden");
+        toggleSensitiveViews(false);
     });
 
     // Agregar ítem de datos sensibles
@@ -629,6 +637,28 @@ function setupEventListeners() {
         document.getElementById("sensitive-modal-title").textContent = `Nuevo Registro: ${selectedSensitiveCategory}`;
         document.getElementById("modal-sensitive").showModal();
     });
+
+    // Navegación de perfiles de compras
+    document.querySelectorAll(".profile-tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".profile-tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeShoppingProfile = btn.getAttribute("data-profile");
+            renderShoppingList();
+        });
+    });
+
+    // Agregar artículo de compra
+    const btnAddCompra = document.getElementById("btn-add-compra-item");
+    if (btnAddCompra) {
+        btnAddCompra.addEventListener("click", openAddShoppingItemModal);
+    }
+
+    // Submit de compra
+    const formCompra = document.getElementById("form-compra");
+    if (formCompra) {
+        formCompra.addEventListener("submit", handleShoppingSubmit);
+    }
 
     // Botón agregar atracción en el parque
     document.getElementById("btn-add-attraction-modal").addEventListener("click", openAddAttractionModal);
@@ -655,10 +685,7 @@ function switchTab(tabName) {
     currentActiveTab = tabName;
     
     // Siempre volver al inicio de la página (ej: ocultar detalle de Locker Seguro)
-    const sensitiveDetailPanel = document.getElementById("sensitive-detail-panel");
-    if (sensitiveDetailPanel) {
-        sensitiveDetailPanel.classList.add("hidden");
-    }
+    toggleSensitiveViews(false);
     
     // Cambiar clase activa en Tab Buttons
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -682,6 +709,7 @@ function switchTab(tabName) {
         "parques": "Plan de Parques",
         "tips": "Tips del Viaje",
         "vuelos": "Vuelos",
+        "compras": "Lista de Compras",
         "sensible": "Locker Seguro"
     };
     
@@ -698,6 +726,7 @@ function switchTab(tabName) {
     else if (tabName === "parques") renderParkChecklist();
     else if (tabName === "tips") renderTipsList("all");
     else if (tabName === "vuelos") renderFlightsList();
+    else if (tabName === "compras") renderShoppingList();
     else if (tabName === "sensible") updateSensitiveCounters();
 }
 
@@ -1809,10 +1838,29 @@ function openEditCategoryModal(key) {
     document.getElementById("modal-edit-category").showModal();
 }
 
+function toggleSensitiveViews(showDetail) {
+    const detailPanel = document.getElementById("sensitive-detail-panel");
+    const subheader = document.querySelector("#view-sensible .documents-header");
+    const addCatBtnContainer = document.getElementById("sensitive-add-category-btn-container");
+    const categoriesGrid = document.getElementById("sensitive-categories-grid");
+    
+    if (showDetail) {
+        if (detailPanel) detailPanel.classList.remove("hidden");
+        if (subheader) subheader.classList.add("hidden");
+        if (addCatBtnContainer) addCatBtnContainer.classList.add("hidden");
+        if (categoriesGrid) categoriesGrid.classList.add("hidden");
+    } else {
+        if (detailPanel) detailPanel.classList.add("hidden");
+        if (subheader) subheader.classList.remove("hidden");
+        if (addCatBtnContainer) addCatBtnContainer.classList.remove("hidden");
+        if (categoriesGrid) categoriesGrid.classList.remove("hidden");
+    }
+}
+
 function openSensitiveCategoryPanel() {
     document.getElementById("sensitive-panel-title").textContent = selectedSensitiveCategory;
     renderSensitiveItems();
-    document.getElementById("sensitive-detail-panel").classList.remove("hidden");
+    toggleSensitiveViews(true);
 }
 
 function renderSensitiveItems() {
@@ -2116,7 +2164,8 @@ async function runSupabaseSync() {
         attractions: "attraction_checklist",
         flights: "flight_itinerary",
         sensible: "sensitive_details",
-        tips: "travel_tips"
+        tips: "travel_tips",
+        compras: "shopping_items"
     };
     
     // Función para validar si un ID es UUID válido
@@ -2251,3 +2300,146 @@ document.addEventListener("visibilitychange", () => {
         triggerBackgroundSync();
     }
 });
+
+// --- COMPRAS PER-PROFILE CHECKLIST MANAGEMENT ---
+function renderShoppingList() {
+    const listEl = document.getElementById("compras-items-list");
+    if (!listEl) return;
+    listEl.innerHTML = "";
+    
+    // Actualizar título
+    document.getElementById("compras-profile-title").textContent = `Lista de ${activeShoppingProfile}`;
+    
+    const filtered = db.compras.filter(item => item.profile === activeShoppingProfile);
+    
+    if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="empty-state-text" style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">No hay artículos en la lista de ${activeShoppingProfile}. Haz clic en '+ Agregar' para sumar uno.</div>`;
+        return;
+    }
+    
+    filtered.forEach(item => {
+        const card = document.createElement("div");
+        card.className = `sensitive-item-card ${item.is_completed ? "completed" : ""}`;
+        card.style.display = "flex";
+        card.style.alignItems = "flex-start";
+        card.style.gap = "12px";
+        card.style.opacity = item.is_completed ? "0.6" : "1";
+        card.style.padding = "14px";
+        
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = item.is_completed;
+        checkbox.style.marginTop = "3px";
+        checkbox.style.transform = "scale(1.2)";
+        checkbox.style.cursor = "pointer";
+        checkbox.addEventListener("change", () => toggleShoppingItemCompletion(item.id));
+        
+        const infoDiv = document.createElement("div");
+        infoDiv.style.flex = "1";
+        
+        let subText = "";
+        if (item.location) subText += `<div style="font-size: 12px; color: var(--apple-blue); font-weight:600; margin-top: 2px;">📍 ${item.location}</div>`;
+        if (item.notes) subText += `<div style="font-size: 13px; color: var(--text-secondary); margin-top: 6px; font-style: italic; border-top: 1px dashed var(--card-border); padding-top: 4px;">${item.notes}</div>`;
+        
+        infoDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h4 style="font-size: 15px; font-weight: 600; margin: 0; text-decoration: ${item.is_completed ? "line-through" : "none"}; color: ${item.is_completed ? "var(--text-secondary)" : "var(--text-primary)"};">${item.title}</h4>
+                <div class="card-action-buttons" style="display: flex; gap: 8px; margin-left: 8px;">
+                    <button class="btn-edit-card" data-action="edit" title="Editar" style="background:none; border:none; padding:4px; cursor:pointer; color:var(--text-secondary); transition: var(--transition);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="btn-delete-card" data-action="delete" title="Eliminar" style="background:none; border:none; padding:4px; cursor:pointer; color:var(--text-secondary); transition: var(--transition);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
+            </div>
+            ${subText}
+        `;
+        
+        infoDiv.querySelector('[data-action="edit"]').addEventListener("click", (e) => {
+            e.stopPropagation();
+            openEditShoppingItemModal(item.id);
+        });
+        infoDiv.querySelector('[data-action="delete"]').addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteShoppingItem(item.id);
+        });
+        
+        card.appendChild(checkbox);
+        card.appendChild(infoDiv);
+        listEl.appendChild(card);
+    });
+}
+
+function toggleShoppingItemCompletion(id) {
+    const itemIdx = db.compras.findIndex(item => item.id === id);
+    if (itemIdx !== -1) {
+        db.compras[itemIdx].is_completed = !db.compras[itemIdx].is_completed;
+        db.compras[itemIdx].updated_at = new Date().toISOString();
+        saveLocal("compras");
+        renderShoppingList();
+    }
+}
+
+function openAddShoppingItemModal() {
+    document.getElementById("form-compra").reset();
+    document.getElementById("compra-id").value = "";
+    document.getElementById("compra-profile").value = activeShoppingProfile;
+    document.getElementById("compra-modal-title").textContent = `Agregar a ${activeShoppingProfile}`;
+    document.getElementById("modal-compra").showModal();
+}
+
+function openEditShoppingItemModal(id) {
+    const item = db.compras.find(i => i.id === id);
+    if (!item) return;
+    
+    document.getElementById("form-compra").reset();
+    document.getElementById("compra-id").value = item.id;
+    document.getElementById("compra-profile").value = item.profile;
+    document.getElementById("compra-title").value = item.title;
+    document.getElementById("compra-location").value = item.location || "";
+    document.getElementById("compra-notes").value = item.notes || "";
+    
+    document.getElementById("compra-modal-title").textContent = `Editar: ${item.title}`;
+    document.getElementById("modal-compra").showModal();
+}
+
+function handleShoppingSubmit(e) {
+    const id = document.getElementById("compra-id").value;
+    const profile = document.getElementById("compra-profile").value;
+    const title = document.getElementById("compra-title").value.trim();
+    const location = document.getElementById("compra-location").value.trim();
+    const notes = document.getElementById("compra-notes").value.trim();
+    
+    if (id) {
+        const itemIdx = db.compras.findIndex(i => i.id === id);
+        if (itemIdx !== -1) {
+            db.compras[itemIdx].title = title;
+            db.compras[itemIdx].location = location;
+            db.compras[itemIdx].notes = notes;
+            db.compras[itemIdx].updated_at = new Date().toISOString();
+        }
+    } else {
+        const newItem = {
+            id: generateUUID(),
+            profile,
+            title,
+            location,
+            notes,
+            is_completed: false,
+            updated_at: new Date().toISOString()
+        };
+        db.compras.push(newItem);
+    }
+    
+    saveLocal("compras");
+    renderShoppingList();
+}
+
+function deleteShoppingItem(id) {
+    if (confirm("¿Estás seguro de eliminar este artículo de la lista de compras?")) {
+        db.compras = db.compras.filter(i => i.id !== id);
+        saveLocal("compras");
+        renderShoppingList();
+    }
+}

@@ -163,13 +163,49 @@
                     </div>
                 </section>
 
-                <!-- Pestaña 5: DATOS SENSIBLES (Pasaportes, reservas, etc) -->
+                <!-- Pestaña 5: COMPRAS (Sofi, Juanma, Agus, Cata) -->
+                <section id="view-compras" class="app-view">
+                    <!-- Perfiles de compras -->
+                    <div class="compras-profiles-tabs" style="display:flex; justify-content:space-around; background:var(--bg-secondary); padding:8px; border-radius:16px; margin-bottom:16px;">
+                        <button class="profile-tab-btn active" data-profile="Sofi" style="flex:1; border:none; background:none; padding:8px 4px; border-radius:12px; cursor:pointer; text-align:center; transition:var(--transition);">
+                            <span style="font-size:22px; display:block; margin-bottom:2px;">👩‍🦰</span>
+                            <span style="font-size:12px; font-weight:600; color:var(--text-primary);">Sofi</span>
+                        </button>
+                        <button class="profile-tab-btn" data-profile="Juanma" style="flex:1; border:none; background:none; padding:8px 4px; border-radius:12px; cursor:pointer; text-align:center; transition:var(--transition);">
+                            <span style="font-size:22px; display:block; margin-bottom:2px;">👨</span>
+                            <span style="font-size:12px; font-weight:600; color:var(--text-primary);">Juanma</span>
+                        </button>
+                        <button class="profile-tab-btn" data-profile="Agus" style="flex:1; border:none; background:none; padding:8px 4px; border-radius:12px; cursor:pointer; text-align:center; transition:var(--transition);">
+                            <span style="font-size:22px; display:block; margin-bottom:2px;">👧</span>
+                            <span style="font-size:12px; font-weight:600; color:var(--text-primary);">Agus</span>
+                        </button>
+                        <button class="profile-tab-btn" data-profile="Cata" style="flex:1; border:none; background:none; padding:8px 4px; border-radius:12px; cursor:pointer; text-align:center; transition:var(--transition);">
+                            <span style="font-size:22px; display:block; margin-bottom:2px;">👶</span>
+                            <span style="font-size:12px; font-weight:600; color:var(--text-primary);">Cata</span>
+                        </button>
+                    </div>
+
+                    <!-- Botón para agregar artículo -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 id="compras-profile-title" style="font-size:18px; font-weight:700;">Lista de Sofi</h3>
+                        <button class="apple-btn-secondary btn-small" id="btn-add-compra-item" style="display:flex; align-items:center; gap:6px;">
+                            <span>+ Agregar</span>
+                        </button>
+                    </div>
+
+                    <!-- Lista de compras -->
+                    <div class="compras-items-list" id="compras-items-list" style="display:flex; flex-direction:column; gap:12px; padding-bottom:100px;">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </section>
+
+                <!-- Pestaña 6: DATOS SENSIBLES (Pasaportes, reservas, etc) -->
                 <section id="view-sensible" class="app-view">
                     <div class="documents-header">
                         <p class="documents-subheader">Información importante, números de pasaporte y reservas seguras localmente.</p>
                     </div>
                     <!-- Botón para agregar nueva categoría -->
-                    <div style="display:flex; justify-content:flex-end; padding:0 16px 12px 16px;">
+                    <div id="sensitive-add-category-btn-container" style="display:flex; justify-content:flex-end; padding:0 16px 12px 16px;">
                         <button class="apple-btn-secondary btn-small" id="btn-add-sensitive-category" style="display:flex; align-items:center; gap:6px;">
                             <span>+ Nueva Categoría</span>
                         </button>
@@ -222,6 +258,12 @@
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5S19 4 17.5 5.5L14 9 5.8 7.2c-.8-.2-1.6.4-1.6 1.2 0 .4.2.8.5 1l7.8 4.6-3.7 3.7-2.3-.5c-.3-.1-.7.1-.9.4l-.8.8c-.3.3-.2.8.2.9l3.5 1.5 1.5 3.5c.1.4.6.5.9.2l.8-.8c.3-.2.5-.6.4-.9l-.5-2.3 3.7-3.7 4.6 7.8c.2.3.6.5 1 .5.8 0 1.4-.8 1.2-1.6z"></path></svg>
                     </div>
                     <span>Vuelos</span>
+                </button>
+                <button class="tab-btn" data-tab="compras">
+                    <div class="tab-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    </div>
+                    <span>Compras</span>
                 </button>
                 <button class="tab-btn" data-tab="sensible">
                     <div class="tab-icon-wrapper">
@@ -709,6 +751,33 @@
             <div class="form-group">
                 <label for="sensitive-notes">Notas (Opcional)</label>
                 <textarea id="sensitive-notes" class="apple-textarea" placeholder="Información adicional o aclaraciones..." rows="3"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Dialog para agregar/editar artículo de compras -->
+    <dialog id="modal-compra" class="apple-dialog">
+        <div class="dialog-header">
+            <h2 id="compra-modal-title">Agregar Artículo</h2>
+            <button class="btn-close-dialog" commandfor="modal-compra" command="close">✕</button>
+        </div>
+        <form id="form-compra" method="dialog" class="dialog-form">
+            <input type="hidden" id="compra-id">
+            <input type="hidden" id="compra-profile">
+            <div class="form-group">
+                <label for="compra-title">Artículo / Producto</label>
+                <input type="text" id="compra-title" class="apple-input" placeholder="Ej: Termo Stanley, Buzo de Mickey..." required>
+            </div>
+            <div class="form-group">
+                <label for="compra-location">Lugar de compra (Opcional)</label>
+                <input type="text" id="compra-location" class="apple-input" placeholder="Ej: Target, Walmart, Disney Springs...">
+            </div>
+            <div class="form-group">
+                <label for="compra-notes">Notas / Talles (Opcional)</label>
+                <textarea id="compra-notes" class="apple-textarea" placeholder="Ej: Color azul, Talle M, traer 2 unidades..." rows="3"></textarea>
             </div>
             <div class="form-actions">
                 <button type="submit" class="apple-btn-primary">Guardar</button>

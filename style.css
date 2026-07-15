@@ -1186,6 +1186,7 @@ body {
     cursor: pointer;
     box-shadow: var(--shadow);
     transition: var(--transition);
+    position: relative;
 }
 
 .sensitive-cat-card:active {
@@ -1258,21 +1259,9 @@ body {
 
 /* Panel Deslizable de Datos Sensibles */
 .sensitive-detail-panel {
-    position: absolute;
-    top: 100px;
-    left: 0;
-    width: 100%;
-    height: calc(100% - 100px);
     background-color: var(--bg-color);
-    z-index: 150;
     display: flex;
     flex-direction: column;
-    padding: 16px;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.sensitive-detail-panel.hidden {
-    transform: translateX(100%);
 }
 
 .panel-header {
@@ -1838,4 +1827,15 @@ body {
     font-weight: 600;
     color: var(--text-secondary);
     padding-bottom: 2px;
+}
+
+.profile-tab-btn {
+    transition: all 0.2s ease;
+}
+.profile-tab-btn.active {
+    background-color: var(--accent-color) !important;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+}
+.profile-tab-btn.active span {
+    color: #ffffff !important;
 }

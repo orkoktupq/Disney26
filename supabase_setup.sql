@@ -153,3 +153,14 @@ INSERT INTO travel_tips (category, title, content, author) VALUES
 ('Disney', 'Ahorra batería con el modo Ahorro de Energía 🔋', 'La app My Disney Experience consume muchísima batería por usar GPS continuamente para los mapas y Lightning Lanes. Pon tu iPhone en "Modo de bajo consumo" desde la mañana, lleva una batería portátil (Powerbank) potente en la mochila, y apaga el Wi-Fi si notas que la señal pública del parque está muy inestable.', 'Juanma'),
 ('General', 'Evitar las horas de calor pico (12 PM - 3 PM) ☀️', 'Julio en Orlando es extremadamente caluroso y húmedo, con lluvias rápidas por la tarde. Usa las horas del mediodía para comer en restaurantes con aire acondicionado, ver shows en teatros cerrados (como Indiana Jones en Hollywood Studios o PhilharMagic en Magic Kingdom) o volver al hotel a bañarse en la pileta y regresar al parque al atardecer.', 'Sofi'),
 ('Universal', 'Vasos refill de Coca-Cola Freestyle 🥤', 'Vale mucho la pena comprar el vaso recargable "Coca-Cola Freestyle" en Universal. Pagas un precio fijo por día y puedes recargar bebidas en decenas de máquinas automáticas cada 10 minutos. Ideal para mantenerse hidratado con el calor de julio.', 'Juanma');
+
+-- 6. Tabla de Compras
+CREATE TABLE IF NOT EXISTS shopping_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile VARCHAR(50) NOT NULL, -- 'Sofi', 'Juanma', 'Agus', 'Cata'
+    title VARCHAR(200) NOT NULL,
+    location VARCHAR(200),
+    notes TEXT,
+    is_completed BOOLEAN DEFAULT false,
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
