@@ -467,11 +467,11 @@ function generateUUID() {
 
 // --- CONFIGURACIÓN DE EVENT LISTENERS ---
 function setupEventListeners() {
-    // 1. Botón de ingreso directo (Usuario único "Juanma y Sofi")
+    // 1. Botón de ingreso directo (Usuario único "Flia. López")
     const unlockBtn = document.getElementById("btn-unlock-direct");
     if (unlockBtn) {
         unlockBtn.addEventListener("click", () => {
-            currentUser = "Juanma y Sofi";
+            currentUser = "Flia. López";
             localStorage.setItem("disney_2026_user", currentUser);
             unlockApp();
         });
