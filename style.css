@@ -1833,11 +1833,17 @@ body {
     transition: all 0.2s ease;
 }
 .profile-tab-btn.active {
-    background-color: var(--accent-color) !important;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+    background-color: rgba(10, 132, 255, 0.12) !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(10, 132, 255, 0.25) !important;
 }
 .profile-tab-btn.active span {
-    color: #ffffff !important;
+    color: var(--accent-color) !important;
+}
+.profile-tab-btn.active .avatar-circle {
+    transform: scale(1.06);
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 2px 8px rgba(10, 132, 255, 0.25) !important;
 }
 
 /* Habilitar copiar y pegar / selección de textos y campos */
