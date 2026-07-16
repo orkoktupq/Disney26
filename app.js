@@ -27,21 +27,22 @@ let supabaseClient = null;
 // --- DATOS INICIALES REALISTAS DE FACTO (FALLBACK LOCAL) ---
 const DEFAULT_ITINERARY = [
     { id: "i0", date: "2026-07-16", title: "Día Previo / Viaje a Orlando", notes: "Día de preparación y salida del vuelo.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i1", date: "2026-07-17", title: "Llegada a Orlando", notes: "Vuelo EZE -> MCO. Retiro del auto de alquiler en Hertz y check-in en Universal Cabana Bay Beach Resort. Compras rápidas en Walmart.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i2", date: "2026-07-18", title: "Magic Kingdom", notes: "¡Primer día de parque! Llegar temprano para el Rope Drop. Reservar TRON y Tiana en Virtual Queue/Lightning Lane a las 7:00 AM.", is_park_day: true, park_name: "Magic Kingdom", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i3", date: "2026-07-19", title: "Epcot", notes: "Visita a Epcot. Cosmic Rewind es prioridad (Virtual Queue a las 7:00 AM o Lightning Lane Single Pass). Pasear por los pabellones de World Showcase en la tarde.", is_park_day: true, park_name: "Epcot", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i4", date: "2026-07-20", title: "Universal Studios Florida", notes: "Visita a Universal Studios. Diagon Alley (Gringotts), Revenge of the Mummy y Men in Black. Almorzar en el Caldero Chorreante.", is_park_day: true, park_name: "Universal Studios", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i1", date: "2026-07-17", title: "Parque de Agua - Disney Typhoon Lagoon", notes: "Día de parque acuático en Disney Typhoon Lagoon. Disfrutar de la pileta de olas gigantes, toboganes y el río lento.", is_park_day: true, park_name: "Typhoon Lagoon", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i2", date: "2026-07-18", title: "Epcot", notes: "Visita a Epcot. Cosmic Rewind es prioridad (Virtual Queue a las 7:00 AM o Lightning Lane Single Pass). Pasear por los pabellones de World Showcase en la tarde.", is_park_day: true, park_name: "Epcot", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i3", date: "2026-07-19", title: "Día de Descanso", notes: "Día libre de descanso, piscina en el hotel o paseos cortos.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i4", date: "2026-07-20", title: "Disney's Animal Kingdom", notes: "Entrar temprano para Avatar Flight of Passage. Expedition Everest y el safari Kilimanjaro Safaris en la mañana para ver los animales activos.", is_park_day: true, park_name: "Animal Kingdom", updated_at: "2026-07-14T08:00:00Z" },
     { id: "i5", date: "2026-07-21", title: "Disney's Hollywood Studios", notes: "Mundo Star Wars (Galaxy's Edge) a primera hora. Rise of the Resistance y Slinky Dog Dash son las prioridades del día.", is_park_day: true, park_name: "Hollywood Studios", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i6", date: "2026-07-22", title: "Día de Compras y Descanso", notes: "Mañana libre en la pileta de Cabana Bay. Tarde de compras en Orlando Premium Outlets (International Dr) y cena en Disney Springs.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i7", date: "2026-07-23", title: "Universal's Islands of Adventure", notes: "Atracciones principales: VelociCoaster, Hagrid's Motorbike Adventure y Spider-Man. Tomar el Hogwarts Express hacia Universal Studios.", is_park_day: true, park_name: "Islands of Adventure", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i8", date: "2026-07-24", title: "Disney's Animal Kingdom", notes: "Entrar temprano para Avatar Flight of Passage. Expedition Everest y el safari Kilimanjaro Safaris en la mañana para ver los animales activos.", is_park_day: true, park_name: "Animal Kingdom", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i9", date: "2026-07-25", title: "Volcano Bay", notes: "Día de relax y toboganes en el parque acuático de Universal. Utilizar la pulsera TapuTapu para reservar tiempos de fila virtual.", is_park_day: true, park_name: "Volcano Bay", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i10", date: "2026-07-26", title: "Magic Kingdom (Día 2)", notes: "Completar atracciones pendientes de Fantasyland y Frontierland. Ver el show de fuegos artificiales Happily Ever After desde una buena ubicación.", is_park_day: true, park_name: "Magic Kingdom", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i11", date: "2026-07-27", title: "Islands of Adventure (Día 2)", notes: "Repetir VelociCoaster y Hagrid's. Disfrutar los detalles de Hogsmeade y almorzar en Las Tres Escobas.", is_park_day: true, park_name: "Islands of Adventure", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i12", date: "2026-07-28", title: "Epcot (Día 2)", notes: "Repetir Cosmic Rewind y Soarin'. Caminar con calma por World Showcase, cenar en el pabellón de Japón y ver el show nocturno Luminous.", is_park_day: true, park_name: "Epcot", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i13", date: "2026-07-29", title: "Hollywood Studios (Día 2)", notes: "Hacer Toy Story Mania, Tower of Terror y ver el show nocturno Fantasmic! (llegar 45 min antes).", is_park_day: true, park_name: "Hollywood Studios", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i14", date: "2026-07-30", title: "Últimas Compras y Valijas", notes: "Último día para comprar recuerdos en Target y Disney Springs. Armar valijas y pesar el equipaje para evitar sorpresas en el aeropuerto.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i15", date: "2026-07-31", title: "Regreso a Casa", notes: "Check-out del hotel Cabana Bay. Devolución del auto en Hertz (MCO). Vuelo de regreso MCO -> Buenos Aires.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" }
+    { id: "i6", date: "2026-07-22", title: "Magic Kingdom", notes: "Llegar temprano para el Rope Drop. Reservar TRON y Tiana en Virtual Queue/Lightning Lane a las 7:00 AM.", is_park_day: true, park_name: "Magic Kingdom", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i7", date: "2026-07-23", title: "Día de Descanso", notes: "Día para reponer energías tras los parques intensos de Disney.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i8", date: "2026-07-24", title: "Universal Studios Florida", notes: "Visita a Universal Studios. Diagon Alley (Gringotts), Revenge of the Mummy y Men in Black. Almorzar en el Caldero Chorreante.", is_park_day: true, park_name: "Universal Studios", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i9", date: "2026-07-25", title: "Universal's Islands of Adventure", notes: "Atracciones principales: VelociCoaster, Hagrid's Motorbike Adventure y Spider-Man. Tomar el Hogwarts Express hacia Universal Studios.", is_park_day: true, park_name: "Islands of Adventure", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i10", date: "2026-07-26", title: "Día de Compras (Shopping)", notes: "Mañana libre de piscina. Tarde de compras en outlets y cena en Disney Springs.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i11", date: "2026-07-27", title: "Día de Compras (Shopping)", notes: "Día dedicado a centros comerciales, Walmart, Target y paseos de compras adicionales.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i12", date: "2026-07-28", title: "Universal Epic Universe", notes: "Visita al nuevo parque temático Epic Universe. Explorar Celestial Park y las nuevas tierras mágicas.", is_park_day: true, park_name: "Epic Universe", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i13", date: "2026-07-29", title: "Universal Epic Universe (Día 2)", notes: "Segundo día en Epic Universe para repetir atracciones favoritas y completar la exploración de las áreas temáticas.", is_park_day: true, park_name: "Epic Universe", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i14", date: "2026-07-30", title: "Universal Studios e Islands of Adventure", notes: "Día combinado para repetir las mejores montañas rusas y atracciones favoritas de ambos parques de Universal.", is_park_day: true, park_name: "Universal Studios, Islands of Adventure", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i15", date: "2026-07-31", title: "Regreso a Casa", notes: "Check-out del hotel, devolución del auto de alquiler en Hertz (MCO) y vuelo de regreso.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i16", date: "2026-08-01", title: "Llegada a Casa", notes: "Llegada al aeropuerto internacional e ingreso al país. Fin de este increíble viaje familiar.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" }
 ];
 
 const DEFAULT_ATTRACTIONS = [
@@ -445,6 +446,43 @@ function initLocalDB() {
     const storedDirty = localStorage.getItem("disney2026_dirty");
     if (storedDirty) {
         db.dirty = JSON.parse(storedDirty);
+    }
+    
+    // Migración automática del itinerario y recalibración de fechas de atracciones
+    const itineraryMigrationKey = "disney2026_itinerary_migration_v3";
+    if (!localStorage.getItem(itineraryMigrationKey)) {
+        console.log("Migrando itinerario a la versión v3 solicitada...");
+        
+        // 1. Reemplazar db.itinerary con DEFAULT_ITINERARY completo
+        db.itinerary = JSON.parse(JSON.stringify(DEFAULT_ITINERARY));
+        localStorage.setItem("disney2026_itinerary", JSON.stringify(db.itinerary));
+        db.dirty.itinerary = true;
+        
+        // 2. Mapear las atracciones existentes a sus nuevas fechas correspondientes
+        const parkDateMapping = {
+            "Magic Kingdom": "2026-07-22",
+            "Epcot": "2026-07-18",
+            "Universal Studios": "2026-07-24",
+            "Hollywood Studios": "2026-07-21",
+            "Islands of Adventure": "2026-07-25",
+            "Animal Kingdom": "2026-07-20",
+            "Volcano Bay": "2026-07-17"
+        };
+        
+        db.attractions = db.attractions.map(att => {
+            if (parkDateMapping[att.park]) {
+                att.date = parkDateMapping[att.park];
+                att.updated_at = new Date().toISOString();
+            }
+            return att;
+        });
+        
+        localStorage.setItem("disney2026_attractions", JSON.stringify(db.attractions));
+        db.dirty.attractions = true;
+        
+        // Guardar estado dirty e inicializar migración completada
+        localStorage.setItem("disney2026_dirty", JSON.stringify(db.dirty));
+        localStorage.setItem(itineraryMigrationKey, "true");
     }
 }
 
@@ -1025,7 +1063,7 @@ function handleItinerarySubmit(e) {
     const themeParks = [
         "Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", 
         "Typhoon Lagoon", "Blizzard Beach", 
-        "Universal Studios", "Islands of Adventure", "Volcano Bay"
+        "Universal Studios", "Islands of Adventure", "Volcano Bay", "Epic Universe"
     ];
     const hasThemePark = checkedActivities.some(act => themeParks.includes(act));
     
@@ -1063,7 +1101,7 @@ function updateThemeParksFromActivities(dayId, activities) {
     const themeParks = [
         "Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", 
         "Typhoon Lagoon", "Blizzard Beach", 
-        "Universal Studios", "Islands of Adventure", "Volcano Bay"
+        "Universal Studios", "Islands of Adventure", "Volcano Bay", "Epic Universe"
     ];
     
     // Obtener todos los parques/actividades vinculados
@@ -1273,7 +1311,7 @@ function handleParkDateChange(e) {
     const themeParks = [
         "Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", 
         "Typhoon Lagoon", "Blizzard Beach", 
-        "Universal Studios", "Islands of Adventure", "Volcano Bay"
+        "Universal Studios", "Islands of Adventure", "Volcano Bay", "Epic Universe"
     ];
     
     // Primero, remover este parque de cualquier otro día
