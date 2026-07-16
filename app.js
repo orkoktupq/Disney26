@@ -761,7 +761,7 @@ function unlockApp() {
     document.getElementById("lock-screen").classList.remove("active");
     
     document.getElementById("app-container").classList.remove("hidden");
-    document.getElementById("current-user-name").textContent = currentUser;
+    document.getElementById("current-user-name").textContent = "Flia. López";
     
     switchTab("calendario");
     updateSensitiveCounters();
@@ -918,6 +918,106 @@ function getDayNotesAndActivities(notesField) {
     };
 }
 
+function getDynamicFlightActivities(dateStr) {
+    if (!db || !Array.isArray(db.flights)) return [];
+    
+    const flightActivities = [];
+    
+    // 1. Vuelos que salen ese día
+    const departingFlights = db.flights.filter(f => f.date === dateStr);
+    departingFlights.forEach(f => {
+        flightActivities.push({
+            id: f.id,
+            is_flight: true,
+            emoji: "✈️",
+            title: `Vuelo ${f.flight_number} (${f.airline})`,
+            time: f.departure_time,
+            notes: `Ruta: ${f.departure_airport} ➔ ${f.arrival_airport}. Horario: ${f.departure_time} - ${f.arrival_time}. Confirmación: ${f.code || ""}`
+        });
+    });
+    
+    // 2. Vuelos que llegan ese día (vuelos del día anterior con "+1" en hora de llegada)
+    try {
+        const prevDate = new Date(dateStr + "T00:00:00");
+        prevDate.setDate(prevDate.getDate() - 1);
+        const prevDateStr = prevDate.toISOString().split("T")[0];
+        
+        const prevDayFlights = db.flights.filter(f => f.date === prevDateStr);
+        prevDayFlights.forEach(f => {
+            if (f.arrival_time && f.arrival_time.includes("+1")) {
+                const cleanArrivalTime = f.arrival_time.replace("+1", "").trim();
+                flightActivities.push({
+                    id: f.id + "_arr",
+                    is_flight: true,
+                    emoji: "🛬",
+                    title: `Llegada Vuelo ${f.flight_number} a ${f.arrival_airport}`,
+                    time: cleanArrivalTime,
+                    notes: `Aterriza a las ${cleanArrivalTime} (vuelo del día anterior desde ${f.departure_airport})`
+                });
+            }
+        });
+    } catch (err) {
+        console.warn("Error calculando llegada de vuelo del día anterior:", err);
+    }
+    
+    return flightActivities;
+}
+
+function getDynamicAutoActivities(dateStr) {
+    if (!db || !Array.isArray(db.sensible)) return [];
+    
+    const autoActivities = [];
+    
+    db.sensible.forEach(item => {
+        if (item.category !== "Auto") return;
+        
+        try {
+            const data = JSON.parse(item.content);
+            if (!data) return;
+            
+            // 1. Recogida (Pickup)
+            if (data.fecha_retiro) {
+                const parts = data.fecha_retiro.split("T");
+                const rDate = parts[0];
+                const rTime = parts[1] || "";
+                
+                if (rDate === dateStr) {
+                    autoActivities.push({
+                        id: item.id + "_pickup",
+                        is_auto: true,
+                        emoji: "🚗",
+                        title: `Retiro de Auto (${data.compania || "Hertz"})`,
+                        time: rTime,
+                        notes: `Lugar: ${data.retiro || ""}. Reserva: ${data.codigo || ""}. Modelo: ${data.modelo || ""}.`
+                    });
+                }
+            }
+            
+            // 2. Devolución (Return)
+            if (data.fecha_devolucion) {
+                const parts = data.fecha_devolucion.split("T");
+                const dDate = parts[0];
+                const dTime = parts[1] || "";
+                
+                if (dDate === dateStr) {
+                    autoActivities.push({
+                        id: item.id + "_return",
+                        is_auto: true,
+                        emoji: "🚗",
+                        title: `Devolución de Auto (${data.compania || "Hertz"})`,
+                        time: dTime,
+                        notes: `Lugar: ${data.devolucion || data.retiro || ""}. Reserva: ${data.codigo || ""}.`
+                    });
+                }
+            }
+        } catch (e) {
+            // Ignorar errores de parseo de datos no estructurados antiguos
+        }
+    });
+    
+    return autoActivities;
+}
+
 // --- RENDERIZAR TAB 1: CALENDARIO ---
 function renderCalendarList() {
     const listEl = document.getElementById("calendar-list");
@@ -938,6 +1038,11 @@ function renderCalendarList() {
         if (isExpanded) card.classList.add("expanded");
         
         const { general_notes, activities } = getDayNotesAndActivities(day.notes);
+        
+        // Obtener y combinar vuelos y autos del día
+        const flightActivities = getDynamicFlightActivities(day.date);
+        const autoActivities = getDynamicAutoActivities(day.date);
+        const allActivities = [...activities, ...flightActivities, ...autoActivities];
         
         // Cabecera del día (toda la fila de arriba)
         const header = document.createElement("div");
@@ -981,12 +1086,11 @@ function renderCalendarList() {
             const expContent = document.createElement("div");
             expContent.className = "card-expanded-content";
             
-
             // Lista de tareas/actividades (Ordenadas cronológicamente por horario)
             const listContainer = document.createElement("div");
             listContainer.className = "activities-list-nested";
             
-            const sortedActivities = [...activities].sort((a, b) => {
+            const sortedActivities = [...allActivities].sort((a, b) => {
                 const timeA = a.time || "99:99";
                 const timeB = b.time || "99:99";
                 return timeA.localeCompare(timeB);
@@ -994,52 +1098,80 @@ function renderCalendarList() {
             
             sortedActivities.forEach(act => {
                 const actCard = document.createElement("div");
-                actCard.className = "nested-activity-card";
-                if (act.completed) actCard.classList.add("completed");
                 
-                actCard.innerHTML = `
-                    <div class="activity-left-side">
-                        <input type="checkbox" class="activity-checkbox" ${act.completed ? "checked" : ""}>
-                        ${act.time ? `<span class="activity-time-badge">${act.time}</span>` : ""}
-                        <span class="activity-emoji">${act.emoji || "📅"}</span>
-                        <div class="activity-text-container">
-                            <span class="activity-text">${act.title}</span>
-                            ${act.notes ? `<span class="activity-notes-subtext">${act.notes}</span>` : ""}
+                if (act.is_flight || act.is_auto) {
+                    const typeLabel = act.is_flight ? "Vuelo" : "Auto";
+                    const themeColor = act.is_flight ? "var(--accent-color)" : "#34c759";
+                    const bgLight = act.is_flight ? "rgba(10, 132, 255, 0.05)" : "rgba(52, 199, 89, 0.05)";
+                    const borderTheme = act.is_flight ? "var(--accent-color)" : "#34c759";
+                    const badgeBg = act.is_flight ? "rgba(10, 132, 255, 0.12)" : "rgba(52, 199, 89, 0.12)";
+                    
+                    actCard.className = `nested-activity-card ${act.is_flight ? "flight-activity" : "auto-activity"}`;
+                    actCard.style.background = bgLight;
+                    actCard.style.borderLeft = `3px solid ${borderTheme}`;
+                    actCard.style.padding = "10px 12px";
+                    
+                    actCard.innerHTML = `
+                        <div class="activity-left-side" style="padding-left: 4px; display: flex; align-items: center; gap: 8px;">
+                            ${act.time ? `<span class="activity-time-badge" style="background: ${themeColor}; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700;">${act.time}</span>` : ""}
+                            <span class="activity-emoji">${act.emoji || (act.is_flight ? "✈️" : "🚗")}</span>
+                            <div class="activity-text-container">
+                                <span class="activity-text" style="font-weight: 600;">${act.title}</span>
+                                ${act.notes ? `<span class="activity-notes-subtext" style="color: var(--text-secondary); display: block; font-size: 12px; margin-top: 2px;">${act.notes}</span>` : ""}
+                            </div>
                         </div>
-                    </div>
-                    <div class="activity-right-side">
-                        <button class="btn-edit-activity" title="Editar Actividad">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                        </button>
-                        <button class="btn-delete-activity" title="Eliminar Actividad">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </div>
-                `;
-                
-                // Marcar/Desmarcar completada
-                const chk = actCard.querySelector(".activity-checkbox");
-                chk.addEventListener("change", () => {
-                    act.completed = chk.checked;
-                    saveDayNotesAndActivities(day.id, general_notes, activities);
-                });
-                
-                // Editar actividad
-                const editActBtn = actCard.querySelector(".btn-edit-activity");
-                editActBtn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    openTaskEditorModal(day.id, act.id);
-                });
-                
-                // Eliminar actividad
-                const deleteActBtn = actCard.querySelector(".btn-delete-activity");
-                deleteActBtn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    if (confirm(`¿Seguro que querés eliminar la actividad "${act.title}"?`)) {
-                        const newActivities = activities.filter(a => a.id !== act.id);
-                        saveDayNotesAndActivities(day.id, general_notes, newActivities);
-                    }
-                });
+                        <div class="activity-right-side">
+                            <span style="font-size: 10px; font-weight: 700; color: ${themeColor}; text-transform: uppercase; background: ${badgeBg}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${typeLabel}</span>
+                        </div>
+                    `;
+                } else {
+                    actCard.className = "nested-activity-card";
+                    if (act.completed) actCard.classList.add("completed");
+                    
+                    actCard.innerHTML = `
+                        <div class="activity-left-side">
+                            <input type="checkbox" class="activity-checkbox" ${act.completed ? "checked" : ""}>
+                            ${act.time ? `<span class="activity-time-badge">${act.time}</span>` : ""}
+                            <span class="activity-emoji">${act.emoji || "📅"}</span>
+                            <div class="activity-text-container">
+                                <span class="activity-text">${act.title}</span>
+                                ${act.notes ? `<span class="activity-notes-subtext">${act.notes}</span>` : ""}
+                            </div>
+                        </div>
+                        <div class="activity-right-side">
+                            <button class="btn-edit-activity" title="Editar Actividad">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                            </button>
+                            <button class="btn-delete-activity" title="Eliminar Actividad">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Marcar/Desmarcar completada
+                    const chk = actCard.querySelector(".activity-checkbox");
+                    chk.addEventListener("change", () => {
+                        act.completed = chk.checked;
+                        saveDayNotesAndActivities(day.id, general_notes, activities);
+                    });
+                    
+                    // Editar actividad
+                    const editActBtn = actCard.querySelector(".btn-edit-activity");
+                    editActBtn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        openTaskEditorModal(day.id, act.id);
+                    });
+                    
+                    // Eliminar actividad
+                    const deleteActBtn = actCard.querySelector(".btn-delete-activity");
+                    deleteActBtn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (confirm(`¿Seguro que querés eliminar la actividad "${act.title}"?`)) {
+                            const newActivities = activities.filter(a => a.id !== act.id);
+                            saveDayNotesAndActivities(day.id, general_notes, newActivities);
+                        }
+                    });
+                }
                 
                 listContainer.appendChild(actCard);
             });
