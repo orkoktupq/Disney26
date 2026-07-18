@@ -137,18 +137,41 @@
                     </div>
                 </section>
 
-                <!-- Pestaña 3: TIPS (Disney & Universal) -->
-                <section id="view-tips" class="app-view">
-                    <div class="tips-filter-bar">
-                        <button class="filter-chip active" data-cat="all">Todos</button>
-                        <button class="filter-chip" data-cat="Disney">Disney</button>
-                        <button class="filter-chip" data-cat="Universal">Universal</button>
-                        <button class="filter-chip" data-cat="General">General</button>
+                <!-- Pestaña 3: GASTOS -->
+                <section id="view-gastos" class="app-view">
+                    <!-- Tarjeta de Resumen Premium -->
+                    <div class="gastos-summary-card">
+                        <span class="summary-label">Total Gastado</span>
+                        <h2 class="summary-amount" id="gastos-total-amount">USD 0.00</h2>
+                        <div class="summary-breakdown">
+                            <div class="breakdown-item">
+                                <span class="breakdown-dot cash"></span>
+                                <span class="breakdown-label">Efectivo:</span>
+                                <span class="breakdown-val" id="gastos-total-cash">USD 0.00</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-dot card"></span>
+                                <span class="breakdown-label">Tarjetas:</span>
+                                <span class="breakdown-val" id="gastos-total-cards">USD 0.00</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="tips-action-bar">
-                        <button class="apple-btn-primary btn-full" id="btn-add-tip-modal">+ Nuevo Tip</button>
+
+                    <!-- Botón Registrar Gasto -->
+                    <div class="gastos-action-bar">
+                        <button class="apple-btn-primary btn-full" id="btn-add-expense-modal">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            Registrar Gasto
+                        </button>
                     </div>
-                    <div class="tips-list" id="tips-list">
+
+                    <!-- Barra de Filtros por Categoría -->
+                    <div class="gastos-filter-bar" id="gastos-filter-bar">
+                        <!-- Generado dinámicamente -->
+                    </div>
+
+                    <!-- Lista de Gastos -->
+                    <div class="gastos-list" id="gastos-list">
                         <!-- Generado dinámicamente -->
                     </div>
                 </section>
@@ -261,11 +284,11 @@
                     </div>
                     <span>Parques</span>
                 </button>
-                <button class="tab-btn" data-tab="tips">
+                <button class="tab-btn" data-tab="gastos">
                     <div class="tab-icon-wrapper">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.73a3 3 0 0 0-.544 1.728H9.828a3 3 0 0 0-.544-1.728l-.548-.73z"></path></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
                     </div>
-                    <span>Tips</span>
+                    <span>Gastos</span>
                 </button>
                 <button class="tab-btn" data-tab="vuelos">
                     <div class="tab-icon-wrapper">
@@ -581,32 +604,100 @@
         </form>
     </dialog>
 
-    <!-- MODAL DE DIÁLOGO: TIPS -->
-    <dialog id="modal-tip" class="apple-dialog">
+    <!-- MODAL DE DIÁLOGO: GASTOS -->
+    <dialog id="modal-expense" class="apple-dialog">
         <div class="dialog-header">
-            <h2 id="tip-modal-title">Nuevo Tip</h2>
-            <button class="btn-close-dialog" commandfor="modal-tip" command="close">✕</button>
+            <h2 id="expense-modal-title">Registrar Gasto</h2>
+            <button class="btn-close-dialog" commandfor="modal-expense" command="close">✕</button>
         </div>
-        <form id="form-tip" method="dialog" class="dialog-form">
-            <input type="hidden" id="tip-id">
+        <form id="form-expense" method="dialog" class="dialog-form">
+            <input type="hidden" id="expense-id">
+            
             <div class="form-group">
-                <label for="tip-category">Categoría</label>
-                <select id="tip-category" class="apple-select">
-                    <option value="Disney">Disney 🏰</option>
-                    <option value="Universal">Universal 🎬</option>
-                    <option value="General">General 🌍</option>
-                </select>
+                <label for="expense-title">Concepto / Título</label>
+                <input type="text" id="expense-title" class="apple-input" placeholder="Ej: Almuerzo en Las Tres Escobas" required>
             </div>
+            
+            <div class="form-group-row">
+                <div class="form-group">
+                    <label for="expense-amount">Monto (USD)</label>
+                    <input type="number" id="expense-amount" class="apple-input" placeholder="0.00" step="0.01" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="expense-date">Fecha</label>
+                    <input type="date" id="expense-date" class="apple-input" required>
+                </div>
+            </div>
+            
             <div class="form-group">
-                <label for="tip-title">Título del Tip</label>
-                <input type="text" id="tip-title" class="apple-input" placeholder="Ej: Fila virtual Tron" required>
+                <label for="expense-category">Categoría</label>
+                <div class="select-with-btn">
+                    <select id="expense-category" class="apple-select" required>
+                        <!-- Cargadas dinámicamente -->
+                    </select>
+                    <button type="button" class="apple-btn-secondary btn-icon-only" id="btn-add-cat-modal" title="Agregar Categoría">＋</button>
+                </div>
             </div>
+            
             <div class="form-group">
-                <label for="tip-content">Contenido del Tip</label>
-                <textarea id="tip-content" class="apple-textarea" placeholder="Escribe el consejo o tip detallado..." rows="4" required></textarea>
+                <label for="expense-payment-method">Medio de Pago</label>
+                <div class="select-with-btn">
+                    <select id="expense-payment-method" class="apple-select" required>
+                        <!-- Cargados dinámicamente -->
+                    </select>
+                    <button type="button" class="apple-btn-secondary btn-icon-only" id="btn-add-pay-modal" title="Agregar Medio de Pago">＋</button>
+                </div>
             </div>
+            
+            <div class="form-group">
+                <label for="expense-notes">Notas (Opcional)</label>
+                <textarea id="expense-notes" class="apple-textarea" placeholder="Escribe detalles adicionales..." rows="3"></textarea>
+            </div>
+            
             <div class="form-actions">
                 <button type="submit" class="apple-btn-primary">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- SUB-MODAL: NUEVA CATEGORÍA DE GASTOS -->
+    <dialog id="modal-add-expense-category" class="apple-dialog sub-dialog">
+        <div class="dialog-header">
+            <h3>Nueva Categoría</h3>
+            <button class="btn-close-dialog" commandfor="modal-add-expense-category" command="close">✕</button>
+        </div>
+        <form id="form-add-expense-category" method="dialog" class="dialog-form">
+            <div class="form-group">
+                <label for="new-expense-cat-name">Nombre de Categoría</label>
+                <input type="text" id="new-expense-cat-name" class="apple-input" placeholder="Ej: Souvenirs" required>
+            </div>
+            <div class="form-group">
+                <label for="new-expense-cat-emoji">Emoji</label>
+                <input type="text" id="new-expense-cat-emoji" class="apple-input" placeholder="Ej: 🧸" maxlength="5" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Agregar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- SUB-MODAL: NUEVO MEDIO DE PAGO -->
+    <dialog id="modal-add-payment-method" class="apple-dialog sub-dialog">
+        <div class="dialog-header">
+            <h3>Nuevo Medio de Pago</h3>
+            <button class="btn-close-dialog" commandfor="modal-add-payment-method" command="close">✕</button>
+        </div>
+        <form id="form-add-payment-method" method="dialog" class="dialog-form">
+            <div class="form-group">
+                <label for="new-pay-method-name">Nombre del Medio</label>
+                <input type="text" id="new-pay-method-name" class="apple-input" placeholder="Ej: Tarjeta Sofi Amex" required>
+            </div>
+            <div class="form-group">
+                <label for="new-pay-method-emoji">Emoji</label>
+                <input type="text" id="new-pay-method-emoji" class="apple-input" placeholder="Ej: 💳" maxlength="5" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="apple-btn-primary">Agregar</button>
             </div>
         </form>
     </dialog>
