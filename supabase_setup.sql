@@ -52,13 +52,31 @@ CREATE TABLE IF NOT EXISTS flight_itinerary (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 5. Tabla de Tips de Viaje
-CREATE TABLE IF NOT EXISTS travel_tips (
+-- 5. Tablas para Control de Gastos
+CREATE TABLE IF NOT EXISTS expense_categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    category VARCHAR(50) NOT NULL, -- 'Disney', 'Universal', 'General'
-    title VARCHAR(150) NOT NULL,
-    content TEXT NOT NULL,
-    author VARCHAR(50) NOT NULL, -- 'Juanma' o 'Sofi'
+    name VARCHAR(100) NOT NULL UNIQUE,
+    emoji VARCHAR(10) NOT NULL DEFAULT '🏷️',
+    is_default BOOLEAN DEFAULT false,
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS payment_methods (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL UNIQUE,
+    emoji VARCHAR(10) NOT NULL DEFAULT '💳',
+    is_default BOOLEAN DEFAULT false,
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS trip_expenses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    amount NUMERIC(10, 2) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    payment_method VARCHAR(100) NOT NULL,
+    date DATE NOT NULL,
+    notes TEXT,
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -67,7 +85,10 @@ TRUNCATE TABLE itinerary_items CASCADE;
 TRUNCATE TABLE attraction_checklist CASCADE;
 TRUNCATE TABLE sensitive_details CASCADE;
 TRUNCATE TABLE flight_itinerary CASCADE;
-TRUNCATE TABLE travel_tips CASCADE;
+TRUNCATE TABLE trip_expenses CASCADE;
+TRUNCATE TABLE expense_categories CASCADE;
+TRUNCATE TABLE payment_methods CASCADE;
+
 
 -- =========================================================================
 -- DATOS DE EJEMPLO REALISTAS
@@ -146,13 +167,25 @@ INSERT INTO sensitive_details (category, title, content) VALUES
 ('Auto', 'Alquiler de Auto - Hertz MCO 🚗', 'Ubicación: Aeropuerto Internacional de Orlando (Terminal A/B Hertz Counter)\nCategoría: SUV Mediano (Toyota RAV4 o similar)\nCheck-in: 17/07/2026 (10:30 AM)\nCheck-out: 31/07/2026 (14:00 PM)\nReserva: #HZ-82736412\nSeguro Incluido: CDW, LIS y kilometraje ilimitado'),
 ('Seguro', 'Asistencia al Viajero - Assist Card Premium 🏥', 'Compañía: Assist Card\nNúmero de Póliza: #AC-9928374-12\nTitulares: Juan Manuel López & Sofía ...\nTeléfono Emergencias (USA): +1 800 874 2222\nCobertura: Hasta USD 150,000 por persona por accidente o enfermedad.');
 
--- 5. Insertar Tips Predeterminados
-INSERT INTO travel_tips (category, title, content, author) VALUES
-('Disney', 'Virtual Queue a las 7:00 AM 📱', 'Para entrar a la fila virtual de TRON Lightcycle / Run o Cosmic Rewind, abre la app My Disney Experience a las 6:58 AM. Ve a "Virtual Queues", selecciona a tu grupo y dale click a "Refresh" exactamente a las 7:00:00 AM. Si no consigues, hay otra oportunidad a las 1:00 PM estando dentro del parque.', 'Juanma'),
-('Universal', 'Estrategia para Hagrid''s Motorbike 🏍️', 'Esta atracción es la más popular de Universal y no ofrece fila Express normal. La mejor estrategia es hacer "Rope Drop" (llegar 45 minutos antes de la apertura oficial del parque Islands of Adventure) e ir corriendo directamente hacia allí. La otra buena opción es hacer la fila al final del día, 15 minutos antes del cierre del parque.', 'Sofi'),
-('Disney', 'Ahorra batería con el modo Ahorro de Energía 🔋', 'La app My Disney Experience consume muchísima batería por usar GPS continuamente para los mapas y Lightning Lanes. Pon tu iPhone en "Modo de bajo consumo" desde la mañana, lleva una batería portátil (Powerbank) potente en la mochila, y apaga el Wi-Fi si notas que la señal pública del parque está muy inestable.', 'Juanma'),
-('General', 'Evitar las horas de calor pico (12 PM - 3 PM) ☀️', 'Julio en Orlando es extremadamente caluroso y húmedo, con lluvias rápidas por la tarde. Usa las horas del mediodía para comer en restaurantes con aire acondicionado, ver shows en teatros cerrados (como Indiana Jones en Hollywood Studios o PhilharMagic en Magic Kingdom) o volver al hotel a bañarse en la pileta y regresar al parque al atardecer.', 'Sofi'),
-('Universal', 'Vasos refill de Coca-Cola Freestyle 🥤', 'Vale mucho la pena comprar el vaso recargable "Coca-Cola Freestyle" en Universal. Pagas un precio fijo por día y puedes recargar bebidas en decenas de máquinas automáticas cada 10 minutos. Ideal para mantenerse hidratado con el calor de julio.', 'Juanma');
+-- 5. Insertar Categorías, Medios de Pago y Gastos Predeterminados
+INSERT INTO expense_categories (name, emoji, is_default) VALUES
+('Comidas', '🍔', true),
+('Juegos', '🎮', true),
+('Regalos', '🎁', true),
+('Super', '🛒', true),
+('Tecnologia', '💻', true),
+('Vestimenta', '👕', true);
+
+INSERT INTO payment_methods (name, emoji, is_default) VALUES
+('Efectivo', '💵', true),
+('Tarjeta Sofi Santander', '💳', true),
+('Tarjeta Juanma BBVA', '💳', true);
+
+INSERT INTO trip_expenses (title, amount, category, payment_method, date, notes) VALUES
+('Almuerzo en Las Tres Escobas', 48.50, 'Comidas', 'Tarjeta Sofi Santander', '2026-07-20', 'Comida en Harry Potter Universal'),
+('Varita mágica interactiva', 63.00, 'Juegos', 'Tarjeta Juanma BBVA', '2026-07-20', 'Varita para Sofi en Diagon Alley'),
+('Compras Walmart', 72.10, 'Super', 'Efectivo', '2026-07-17', 'Agua, snacks y protector solar');
+
 
 -- 6. Tabla de Compras
 CREATE TABLE IF NOT EXISTS shopping_items (
