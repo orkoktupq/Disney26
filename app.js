@@ -100,12 +100,25 @@ const DEFAULT_SENSIBLE = [
     { id: "s5", category: "Seguro", title: "Asistencia al Viajero - Assist Card Premium 🏥", content: "Compañía: Assist Card\nNúmero de Póliza: #AC-9928374-12\nTitulares: Juan Manuel López & Sofía ...\nTeléfono Emergencias (USA): +1 800 874 2222\nCobertura: Hasta USD 150,000 por persona por accidente o enfermedad.", updated_at: "2026-07-14T08:00:00Z" }
 ];
 
-const DEFAULT_TIPS = [
-    { id: "t1", category: "Disney", title: "Virtual Queue a las 7:00 AM 📱", content: "Para entrar a la fila virtual de TRON Lightcycle / Run o Cosmic Rewind, abre la app My Disney Experience a las 6:58 AM. Ve a \"Virtual Queues\", selecciona a tu grupo y dale click a \"Refresh\" exactamente a las 7:00:00 AM. Si no consigues, hay otra oportunidad a las 1:00 PM estando dentro del parque.", author: "Juanma", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "t2", category: "Universal", title: "Estrategia para Hagrid's Motorbike 🏍️", content: "Esta atracción es la más popular de Universal y no ofrece fila Express normal. La mejor estrategia es hacer \"Rope Drop\" (llegar 45 minutos antes de la apertura oficial del parque Islands of Adventure) e ir corriendo directamente hacia allí. La otra buena opción es hacer la fila al final del día, 15 minutos antes del cierre del parque.", author: "Sofi", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "t3", category: "Disney", title: "Ahorra batería con el modo Ahorro de Energía 🔋", content: "La app My Disney Experience consume muchísima batería por usar GPS continuamente para los mapas and Lightning Lanes. Pon tu iPhone en \"Modo de bajo consumo\" desde la mañana, lleva una batería portátil (Powerbank) potente en la mochila, y apaga el Wi-Fi si notas que la señal pública del parque está muy inestable.", author: "Juanma", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "t4", category: "General", title: "Evitar las horas de calor pico (12 PM - 3 PM) ☀️", content: "Julio en Orlando es extremadamente caluroso y húmedo, con lluvias rápidas por la tarde. Usa las horas del mediodía para comer en restaurantes con aire acondicionado, ver shows en teatros cerrados (como Indiana Jones en Hollywood Studios o PhilharMagic en Magic Kingdom) o volver al hotel a bañarse en la pileta y regresar al parque al atardecer.", author: "Sofi", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "t5", category: "Universal", title: "Vasos refill de Coca-Cola Freestyle 🥤", content: "Vale mucho la pena comprar el vaso recargable \"Coca-Cola Freestyle\" en Universal. Pagas un precio fijo por día y puedes recargar bebidas en decenas de máquinas automáticas cada 10 minutos. Ideal para mantenerse hidratado con el calor de julio.", author: "Juanma", updated_at: "2026-07-14T08:00:00Z" }
+const DEFAULT_EXPENSE_CATEGORIES = [
+    { id: "ec1", name: "Comidas", emoji: "🍔", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "ec2", name: "Juegos", emoji: "🎮", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "ec3", name: "Regalos", emoji: "🎁", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "ec4", name: "Super", emoji: "🛒", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "ec5", name: "Tecnologia", emoji: "💻", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "ec6", name: "Vestimenta", emoji: "👕", is_default: true, updated_at: "2026-07-14T08:00:00Z" }
+];
+
+const DEFAULT_PAYMENT_METHODS = [
+    { id: "pm1", name: "Efectivo", emoji: "💵", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "pm2", name: "Tarjeta Sofi Santander", emoji: "💳", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "pm3", name: "Tarjeta Juanma BBVA", emoji: "💳", is_default: true, updated_at: "2026-07-14T08:00:00Z" }
+];
+
+const DEFAULT_EXPENSES = [
+    { id: "e1", title: "Almuerzo en Las Tres Escobas", amount: 48.50, category: "Comidas", payment_method: "Tarjeta Sofi Santander", date: "2026-07-20", notes: "Comida en Harry Potter Universal", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "e2", title: "Varita mágica interactiva", amount: 63.00, category: "Juegos", payment_method: "Tarjeta Juanma BBVA", date: "2026-07-20", notes: "Varita para Sofi en Diagon Alley", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "e3", title: "Compras Walmart", amount: 72.10, category: "Super", payment_method: "Efectivo", date: "2026-07-17", notes: "Agua, snacks y protector solar", updated_at: "2026-07-14T08:00:00Z" }
 ];
 
 const DEFAULT_COMPRAS = [
@@ -308,7 +321,9 @@ let db = {
     attractions: [],
     flights: [],
     sensible: [],
-    tips: [],
+    expenses: [],
+    expense_categories: [],
+    payment_methods: [],
     compras: [],
     dirty: {} // Registra elementos que necesitan sincronizarse con Supabase
 };
@@ -404,7 +419,7 @@ function initLocalDB() {
         }
     }
 
-    const keys = ["itinerary", "attractions", "flights", "sensible", "tips", "compras"];
+    const keys = ["itinerary", "attractions", "flights", "sensible", "expenses", "expense_categories", "payment_methods", "compras"];
     keys.forEach(key => {
         const stored = localStorage.getItem(`disney2026_${key}`);
         if (stored) {
@@ -416,7 +431,9 @@ function initLocalDB() {
             else if (key === "attractions") defaultVal = DEFAULT_ATTRACTIONS;
             else if (key === "flights") defaultVal = DEFAULT_FLIGHTS;
             else if (key === "sensible") defaultVal = DEFAULT_SENSIBLE;
-            else if (key === "tips") defaultVal = DEFAULT_TIPS;
+            else if (key === "expenses") defaultVal = DEFAULT_EXPENSES;
+            else if (key === "expense_categories") defaultVal = DEFAULT_EXPENSE_CATEGORIES;
+            else if (key === "payment_methods") defaultVal = DEFAULT_PAYMENT_METHODS;
             else if (key === "compras") defaultVal = DEFAULT_COMPRAS;
             
             db[key] = defaultVal;
@@ -610,7 +627,9 @@ function setupEventListeners() {
     // 4. Modales - Control de envío
     document.getElementById("form-itinerary").addEventListener("submit", handleItinerarySubmit);
     document.getElementById("form-attraction").addEventListener("submit", handleAttractionSubmit);
-    document.getElementById("form-tip").addEventListener("submit", handleTipSubmit);
+    document.getElementById("form-expense").addEventListener("submit", handleExpenseSubmit);
+    document.getElementById("form-add-expense-category").addEventListener("submit", handleCategorySubmit);
+    document.getElementById("form-add-payment-method").addEventListener("submit", handlePaymentMethodSubmit);
     document.getElementById("form-flight").addEventListener("submit", handleFlightSubmit);
     document.getElementById("form-sensitive").addEventListener("submit", handleSensitiveSubmit);
 
@@ -622,21 +641,32 @@ function setupEventListeners() {
 
     document.getElementById("park-date-select").addEventListener("change", handleParkDateChange);
 
-    // Chips de filtrado de tips
-    document.querySelectorAll(".filter-chip").forEach(chip => {
-        chip.addEventListener("click", () => {
-            document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
-            chip.classList.add("active");
-            renderTipsList(chip.getAttribute("data-cat"));
-        });
+    // Botón agregar gasto
+    document.getElementById("btn-add-expense-modal").addEventListener("click", () => {
+        document.getElementById("form-expense").reset();
+        document.getElementById("expense-id").value = "";
+        
+        // Cargar por defecto la fecha actual local
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        document.getElementById("expense-date").value = `${year}-${month}-${day}`;
+        
+        loadExpenseDropdowns();
+        document.getElementById("expense-modal-title").textContent = "Registrar Gasto";
+        document.getElementById("modal-expense").showModal();
     });
 
-    // Botón agregar tip
-    document.getElementById("btn-add-tip-modal").addEventListener("click", () => {
-        document.getElementById("form-tip").reset();
-        document.getElementById("tip-id").value = "";
-        document.getElementById("tip-modal-title").textContent = "Nuevo Tip";
-        document.getElementById("modal-tip").showModal();
+    // Botones para abrir sub-modales de agregar categoría y medio de pago
+    document.getElementById("btn-add-cat-modal").addEventListener("click", () => {
+        document.getElementById("form-add-expense-category").reset();
+        document.getElementById("modal-add-expense-category").showModal();
+    });
+
+    document.getElementById("btn-add-pay-modal").addEventListener("click", () => {
+        document.getElementById("form-add-payment-method").reset();
+        document.getElementById("modal-add-payment-method").showModal();
     });
 
     // Botón agregar vuelo
@@ -796,7 +826,7 @@ function switchTab(tabName, isUserClick = false) {
     const titleMap = {
         "calendario": "Calendario",
         "parques": "Plan de Parques",
-        "tips": "Tips del Viaje",
+        "gastos": "Control de Gastos",
         "vuelos": "Vuelos",
         "compras": "Lista de Compras",
         "sensible": "Documentos"
@@ -813,7 +843,10 @@ function switchTab(tabName, isUserClick = false) {
     // Renderizar contenidos dinámicos
     if (tabName === "calendario") renderCalendarList();
     else if (tabName === "parques") renderParkChecklist();
-    else if (tabName === "tips") renderTipsList("all");
+    else if (tabName === "gastos") {
+        renderGastosFilterBar();
+        renderExpensesList("all");
+    }
     else if (tabName === "vuelos") renderFlightsList();
     else if (tabName === "compras") renderShoppingList();
     else if (tabName === "sensible") {
@@ -1662,118 +1695,323 @@ function handleAttractionSubmit(e) {
     renderParkChecklist();
 }
 
-// --- RENDERIZAR TAB 3: TIPS ---
-function renderTipsList(category = "all") {
-    const listEl = document.getElementById("tips-list");
+// --- RENDERIZAR TAB 3: GASTOS ---
+function renderGastosFilterBar() {
+    const barEl = document.getElementById("gastos-filter-bar");
+    if (!barEl) return;
+    
+    // Guardar cuál es el chip activo actualmente
+    const activeChip = barEl.querySelector(".filter-chip.active");
+    const activeCat = activeChip ? activeChip.getAttribute("data-cat") : "all";
+    
+    barEl.innerHTML = "";
+    
+    // Chip "Todos"
+    const allChip = document.createElement("button");
+    allChip.className = "filter-chip" + (activeCat === "all" ? " active" : "");
+    allChip.setAttribute("data-cat", "all");
+    allChip.textContent = "🌍 Todos";
+    allChip.addEventListener("click", () => {
+        barEl.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+        allChip.classList.add("active");
+        renderExpensesList("all");
+    });
+    barEl.appendChild(allChip);
+    
+    // Chips de categorías
+    db.expense_categories.forEach(cat => {
+        const chip = document.createElement("button");
+        chip.className = "filter-chip" + (activeCat === cat.name ? " active" : "");
+        chip.setAttribute("data-cat", cat.name);
+        chip.textContent = `${cat.emoji} ${cat.name}`;
+        chip.addEventListener("click", () => {
+            barEl.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+            renderExpensesList(cat.name);
+        });
+        barEl.appendChild(chip);
+    });
+}
+
+function loadExpenseDropdowns() {
+    const catSelect = document.getElementById("expense-category");
+    const paySelect = document.getElementById("expense-payment-method");
+    if (!catSelect || !paySelect) return;
+    
+    const prevCat = catSelect.value;
+    const prevPay = paySelect.value;
+    
+    catSelect.innerHTML = "";
+    db.expense_categories.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat.name;
+        opt.textContent = `${cat.emoji} ${cat.name}`;
+        catSelect.appendChild(opt);
+    });
+    
+    paySelect.innerHTML = "";
+    db.payment_methods.forEach(pm => {
+        const opt = document.createElement("option");
+        opt.value = pm.name;
+        opt.textContent = `${pm.emoji} ${pm.name}`;
+        paySelect.appendChild(opt);
+    });
+    
+    // Restaurar selecciones previas si aún existen
+    if (prevCat && db.expense_categories.some(c => c.name === prevCat)) {
+        catSelect.value = prevCat;
+    }
+    if (prevPay && db.payment_methods.some(p => p.name === prevPay)) {
+        paySelect.value = prevPay;
+    }
+}
+
+function updateGastosSummary() {
+    let total = 0;
+    let cash = 0;
+    let cards = 0;
+    
+    db.expenses.forEach(e => {
+        const amt = parseFloat(e.amount) || 0;
+        total += amt;
+        
+        const isCash = e.payment_method.toLowerCase().includes("efectivo") || 
+                       e.payment_method.toLowerCase() === "cash";
+        
+        if (isCash) {
+            cash += amt;
+        } else {
+            cards += amt;
+        }
+    });
+    
+    const totalEl = document.getElementById("gastos-total-amount");
+    const cashEl = document.getElementById("gastos-total-cash");
+    const cardsEl = document.getElementById("gastos-total-cards");
+    
+    if (totalEl) totalEl.textContent = `USD ${total.toFixed(2)}`;
+    if (cashEl) cashEl.textContent = `USD ${cash.toFixed(2)}`;
+    if (cardsEl) cardsEl.textContent = `USD ${cards.toFixed(2)}`;
+}
+
+function renderExpensesList(category = "all") {
+    updateGastosSummary();
+    
+    const listEl = document.getElementById("gastos-list");
+    if (!listEl) return;
     listEl.innerHTML = "";
     
-    const filtered = category === "all" 
-        ? db.tips 
-        : db.tips.filter(t => t.category === category);
+    const filtered = category === "all"
+        ? db.expenses
+        : db.expenses.filter(e => e.category === category);
         
     if (filtered.length === 0) {
-        listEl.innerHTML = `<div class="empty-state-text" style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">No hay tips registrados en esta categoría.</div>`;
+        listEl.innerHTML = `<div class="empty-state-text" style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">No hay gastos registrados en esta categoría.</div>`;
         return;
     }
     
-    // Mostrar tips del más reciente al más antiguo
-    const sorted = [...filtered].sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+    // Ordenar por fecha desc, luego por updated_at desc
+    const sorted = [...filtered].sort((a, b) => {
+        const dateDiff = new Date(b.date) - new Date(a.date);
+        if (dateDiff !== 0) return dateDiff;
+        return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
+    });
     
-    sorted.forEach(tip => {
-        const card = document.createElement("div");
-        card.className = "tip-card";
+    sorted.forEach(expense => {
+        // Encontrar emoji de la categoría
+        const catObj = db.expense_categories.find(c => c.name === expense.category);
+        const catEmoji = catObj ? catObj.emoji : "🏷️";
         
-        const isDisney = tip.category === "Disney";
-        const isUniversal = tip.category === "Universal";
-        const catBadgeClass = isDisney ? "tip-badge disney" : (isUniversal ? "tip-badge universal" : "tip-badge general");
-        const authorClass = tip.author.toLowerCase() === "juanma" ? "tip-author-badge juanma" : "tip-author-badge sofi";
+        // Encontrar emoji de medio de pago
+        const pmObj = db.payment_methods.find(p => p.name === expense.payment_method);
+        const pmEmoji = pmObj ? pmObj.emoji : "💳";
+        
+        const card = document.createElement("div");
+        card.className = "gasto-card";
+        
+        // Formatear fecha a es-AR (DD/MM)
+        let formattedDate = "";
+        if (expense.date) {
+            const [y, m, d] = expense.date.split("-");
+            formattedDate = `${d}/${m}`;
+        }
         
         card.innerHTML = `
-            <div class="tip-card-header">
-                <span class="${catBadgeClass}">${tip.category}</span>
-                <span class="${authorClass}">${tip.author}</span>
+            <div class="gasto-card-left">
+                <div class="gasto-icon-wrapper" title="${expense.category}">
+                    ${catEmoji}
+                </div>
+                <div class="gasto-details">
+                    <h3>${expense.title}</h3>
+                    <div class="gasto-sub-info">
+                        <span>${pmEmoji} ${expense.payment_method}</span>
+                        ${expense.notes ? `<span class="notes-indicator" title="${expense.notes.replace(/"/g, '&quot;')}">📝</span>` : ""}
+                    </div>
+                </div>
             </div>
-            <h3>${tip.title}</h3>
-            <p>${tip.content}</p>
-            <div class="tip-footer">
-                <div class="card-action-buttons">
-                    <button class="btn-edit-card" data-action="edit" title="Editar">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <div class="gasto-card-right">
+                <span class="gasto-amount">USD ${parseFloat(expense.amount).toFixed(2)}</span>
+                <span class="gasto-date">${formattedDate}</span>
+                <div class="gasto-actions">
+                    <button class="btn-edit-gasto" data-action="edit" title="Editar">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
-                    <button class="btn-delete-card" data-action="delete" title="Eliminar">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    <button class="btn-delete-gasto" data-action="delete" title="Eliminar">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                 </div>
             </div>
         `;
         
-        card.querySelector('[data-action="edit"]').addEventListener("click", () => openEditTipModal(tip.id));
-        card.querySelector('[data-action="delete"]').addEventListener("click", () => deleteTip(tip.id));
+        card.querySelector('[data-action="edit"]').addEventListener("click", () => openEditExpenseModal(expense.id));
+        card.querySelector('[data-action="delete"]').addEventListener("click", () => deleteExpense(expense.id));
+        
         listEl.appendChild(card);
     });
 }
 
-function openEditTipModal(id) {
-    const tip = db.tips.find(t => t.id === id);
-    if (!tip) return;
+function openEditExpenseModal(id) {
+    const expense = db.expenses.find(e => e.id === id);
+    if (!expense) return;
     
-    document.getElementById("form-tip").reset();
-    document.getElementById("tip-id").value = tip.id;
-    document.getElementById("tip-category").value = tip.category;
-    document.getElementById("tip-title").value = tip.title;
-    document.getElementById("tip-content").value = tip.content;
+    document.getElementById("form-expense").reset();
+    document.getElementById("expense-id").value = expense.id;
+    document.getElementById("expense-title").value = expense.title;
+    document.getElementById("expense-amount").value = expense.amount;
+    document.getElementById("expense-date").value = expense.date;
     
-    document.getElementById("tip-modal-title").textContent = "Editar Tip";
-    document.getElementById("modal-tip").showModal();
+    loadExpenseDropdowns();
+    document.getElementById("expense-category").value = expense.category;
+    document.getElementById("expense-payment-method").value = expense.payment_method;
+    document.getElementById("expense-notes").value = expense.notes || "";
+    
+    document.getElementById("expense-modal-title").textContent = "Editar Gasto";
+    document.getElementById("modal-expense").showModal();
 }
 
-function handleTipSubmit(e) {
-    const id = document.getElementById("tip-id").value;
-    const title = document.getElementById("tip-title").value;
-    const content = document.getElementById("tip-content").value;
-    const category = document.getElementById("tip-category").value;
+function handleExpenseSubmit(e) {
+    const id = document.getElementById("expense-id").value;
+    const title = document.getElementById("expense-title").value;
+    const amount = parseFloat(document.getElementById("expense-amount").value) || 0;
+    const date = document.getElementById("expense-date").value;
+    const category = document.getElementById("expense-category").value;
+    const payment_method = document.getElementById("expense-payment-method").value;
+    const notes = document.getElementById("expense-notes").value;
     
     if (id) {
-        const tipIdx = db.tips.findIndex(t => t.id === id);
-        if (tipIdx !== -1) {
-            db.tips[tipIdx].title = title;
-            db.tips[tipIdx].content = content;
-            db.tips[tipIdx].category = category;
-            db.tips[tipIdx].updated_at = new Date().toISOString();
+        const expIdx = db.expenses.findIndex(e => e.id === id);
+        if (expIdx !== -1) {
+            db.expenses[expIdx].title = title;
+            db.expenses[expIdx].amount = amount;
+            db.expenses[expIdx].date = date;
+            db.expenses[expIdx].category = category;
+            db.expenses[expIdx].payment_method = payment_method;
+            db.expenses[expIdx].notes = notes;
+            db.expenses[expIdx].updated_at = new Date().toISOString();
         }
     } else {
-        const newTip = {
+        const newExpense = {
             id: generateUUID(),
-            category,
             title,
-            content,
-            author: currentUser,
+            amount,
+            category,
+            payment_method,
+            date,
+            notes,
             updated_at: new Date().toISOString()
         };
-        
-        db.tips.push(newTip);
+        db.expenses.push(newExpense);
     }
     
-    saveLocal("tips");
+    saveLocal("expenses");
     
-    document.querySelectorAll(".filter-chip").forEach(c => {
-        c.classList.remove("active");
-        if (c.getAttribute("data-cat") === category) c.classList.add("active");
-    });
+    renderGastosFilterBar();
+    const barEl = document.getElementById("gastos-filter-bar");
+    if (barEl) {
+        barEl.querySelectorAll(".filter-chip").forEach(c => {
+            c.classList.remove("active");
+            if (c.getAttribute("data-cat") === category) c.classList.add("active");
+        });
+    }
     
-    renderTipsList(category);
+    renderExpensesList(category);
 }
 
-function deleteTip(id) {
-    if (confirm("¿Quieres eliminar este tip?")) {
-        db.tips = db.tips.filter(t => t.id !== id);
-        saveLocal("tips");
+async function deleteExpense(id) {
+    if (confirm("¿Quieres eliminar este gasto?")) {
+        db.expenses = db.expenses.filter(e => e.id !== id);
+        saveLocal("expenses");
         
-        // Averiguar categoría activa
-        const activeChip = document.querySelector(".filter-chip.active");
+        const isValidUUID = (val) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+        if (window.navigator.onLine && supabaseClient && isValidUUID(id)) {
+            try {
+                await supabaseClient.from("trip_expenses").delete().eq("id", id);
+            } catch (err) {
+                console.warn("Fallo al eliminar gasto de Supabase:", err);
+            }
+        }
+        
+        const activeChip = document.querySelector("#gastos-filter-bar .filter-chip.active");
         const activeCat = activeChip ? activeChip.getAttribute("data-cat") : "all";
-        renderTipsList(activeCat);
+        renderExpensesList(activeCat);
     }
+}
+
+function handleCategorySubmit(e) {
+    const name = document.getElementById("new-expense-cat-name").value.trim();
+    const emoji = document.getElementById("new-expense-cat-emoji").value.trim();
+    
+    if (!name || !emoji) return;
+    
+    const exists = db.expense_categories.some(c => c.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+        alert("Esta categoría ya existe.");
+        return;
+    }
+    
+    const newCat = {
+        id: generateUUID(),
+        name,
+        emoji,
+        is_default: false,
+        updated_at: new Date().toISOString()
+    };
+    
+    db.expense_categories.push(newCat);
+    saveLocal("expense_categories");
+    
+    loadExpenseDropdowns();
+    renderGastosFilterBar();
+    
+    document.getElementById("expense-category").value = name;
+}
+
+function handlePaymentMethodSubmit(e) {
+    const name = document.getElementById("new-pay-method-name").value.trim();
+    const emoji = document.getElementById("new-pay-method-emoji").value.trim();
+    
+    if (!name || !emoji) return;
+    
+    const exists = db.payment_methods.some(p => p.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+        alert("Este medio de pago ya existe.");
+        return;
+    }
+    
+    const newPM = {
+        id: generateUUID(),
+        name,
+        emoji,
+        is_default: false,
+        updated_at: new Date().toISOString()
+    };
+    
+    db.payment_methods.push(newPM);
+    saveLocal("payment_methods");
+    
+    loadExpenseDropdowns();
+    
+    document.getElementById("expense-payment-method").value = name;
 }
 
 // --- RENDERIZAR TAB 4: VUELOS ---
@@ -2486,7 +2724,9 @@ async function runSupabaseSync() {
         attractions: "attraction_checklist",
         flights: "flight_itinerary",
         sensible: "sensitive_details",
-        tips: "travel_tips",
+        expenses: "trip_expenses",
+        expense_categories: "expense_categories",
+        payment_methods: "payment_methods",
         compras: "shopping_items"
     };
     
