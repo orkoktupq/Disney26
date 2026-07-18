@@ -174,12 +174,14 @@ INSERT INTO expense_categories (name, emoji, is_default) VALUES
 ('Regalos', '🎁', true),
 ('Super', '🛒', true),
 ('Tecnologia', '💻', true),
-('Vestimenta', '👕', true);
+('Vestimenta', '👕', true),
+('Habitación', '🏨', true);
 
 INSERT INTO payment_methods (name, emoji, is_default) VALUES
 ('Efectivo', '💵', true),
 ('Tarjeta Sofi Santander', '💳', true),
-('Tarjeta Juanma BBVA', '💳', true);
+('Tarjeta Juanma BBVA', '💳', true),
+('Habitación', '🏨', true);
 
 INSERT INTO trip_expenses (title, amount, category, payment_method, date, notes) VALUES
 ('Almuerzo en Las Tres Escobas', 48.50, 'Comidas', 'Tarjeta Sofi Santander', '2026-07-20', 'Comida en Harry Potter Universal'),
