@@ -106,13 +106,15 @@ const DEFAULT_EXPENSE_CATEGORIES = [
     { id: "ec3", name: "Regalos", emoji: "🎁", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
     { id: "ec4", name: "Super", emoji: "🛒", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
     { id: "ec5", name: "Tecnologia", emoji: "💻", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
-    { id: "ec6", name: "Vestimenta", emoji: "👕", is_default: true, updated_at: "2026-07-14T08:00:00Z" }
+    { id: "ec6", name: "Vestimenta", emoji: "👕", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "ec7", name: "Habitación", emoji: "🏨", is_default: true, updated_at: "2026-07-14T08:00:00Z" }
 ];
 
 const DEFAULT_PAYMENT_METHODS = [
     { id: "pm1", name: "Efectivo", emoji: "💵", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
     { id: "pm2", name: "Tarjeta Sofi Santander", emoji: "💳", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
-    { id: "pm3", name: "Tarjeta Juanma BBVA", emoji: "💳", is_default: true, updated_at: "2026-07-14T08:00:00Z" }
+    { id: "pm3", name: "Tarjeta Juanma BBVA", emoji: "💳", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
+    { id: "pm4", name: "Habitación", emoji: "🏨", is_default: true, updated_at: "2026-07-14T08:00:00Z" }
 ];
 
 const DEFAULT_EXPENSES = [
@@ -628,6 +630,7 @@ function setupEventListeners() {
     document.getElementById("form-itinerary").addEventListener("submit", handleItinerarySubmit);
     document.getElementById("form-attraction").addEventListener("submit", handleAttractionSubmit);
     document.getElementById("form-expense").addEventListener("submit", handleExpenseSubmit);
+    document.getElementById("form-pay-room").addEventListener("submit", handlePayRoomSubmit);
     document.getElementById("form-add-expense-category").addEventListener("submit", handleCategorySubmit);
     document.getElementById("form-add-payment-method").addEventListener("submit", handlePaymentMethodSubmit);
     document.getElementById("form-flight").addEventListener("submit", handleFlightSubmit);
@@ -668,6 +671,48 @@ function setupEventListeners() {
         document.getElementById("form-add-payment-method").reset();
         document.getElementById("modal-add-payment-method").showModal();
     });
+
+    // Botón pagar habitación
+    const payRoomBtn = document.getElementById("btn-pay-room-modal");
+    if (payRoomBtn) {
+        payRoomBtn.addEventListener("click", () => {
+            document.getElementById("form-pay-room").reset();
+            
+            // Calcular balance de habitación actual
+            let roomBalance = 0;
+            db.expenses.forEach(e => {
+                const methodLower = e.payment_method.toLowerCase();
+                if (methodLower === "habitación" || methodLower.includes("habitacion")) {
+                    roomBalance += parseFloat(e.amount) || 0;
+                }
+            });
+            
+            document.getElementById("pay-room-amount").value = roomBalance > 0 ? roomBalance.toFixed(2) : "";
+            
+            // Cargar por defecto la fecha actual local
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            document.getElementById("pay-room-date").value = `${year}-${month}-${day}`;
+            
+            // Cargar medios de pago en el selector (filtrando Habitación)
+            const selectEl = document.getElementById("pay-room-payment-method");
+            if (selectEl) {
+                selectEl.innerHTML = "";
+                db.payment_methods.forEach(pm => {
+                    if (pm.name.toLowerCase() !== "habitación" && !pm.name.toLowerCase().includes("habitacion")) {
+                        const opt = document.createElement("option");
+                        opt.value = pm.name;
+                        opt.textContent = `${pm.emoji} ${pm.name}`;
+                        selectEl.appendChild(opt);
+                    }
+                });
+            }
+            
+            document.getElementById("modal-pay-room").showModal();
+        });
+    }
 
     // Botón agregar vuelo
     document.getElementById("btn-add-flight-modal").addEventListener("click", () => {
@@ -1710,7 +1755,7 @@ function renderGastosFilterBar() {
     const allChip = document.createElement("button");
     allChip.className = "filter-chip" + (activeCat === "all" ? " active" : "");
     allChip.setAttribute("data-cat", "all");
-    allChip.textContent = "🌍 Todos";
+    allChip.innerHTML = `<span class="chip-emoji">🌍</span><span class="chip-text">Todos</span>`;
     allChip.addEventListener("click", () => {
         barEl.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
         allChip.classList.add("active");
@@ -1723,7 +1768,7 @@ function renderGastosFilterBar() {
         const chip = document.createElement("button");
         chip.className = "filter-chip" + (activeCat === cat.name ? " active" : "");
         chip.setAttribute("data-cat", cat.name);
-        chip.textContent = `${cat.emoji} ${cat.name}`;
+        chip.innerHTML = `<span class="chip-emoji">${cat.emoji}</span><span class="chip-text">${cat.name}</span>`;
         chip.addEventListener("click", () => {
             barEl.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
             chip.classList.add("active");
@@ -1770,15 +1815,17 @@ function updateGastosSummary() {
     let total = 0;
     let cash = 0;
     let cards = 0;
+    let room = 0;
     
     db.expenses.forEach(e => {
         const amt = parseFloat(e.amount) || 0;
         total += amt;
         
-        const isCash = e.payment_method.toLowerCase().includes("efectivo") || 
-                       e.payment_method.toLowerCase() === "cash";
+        const methodLower = e.payment_method.toLowerCase();
         
-        if (isCash) {
+        if (methodLower === "habitación" || methodLower.includes("habitacion")) {
+            room += amt;
+        } else if (methodLower.includes("efectivo") || methodLower === "cash") {
             cash += amt;
         } else {
             cards += amt;
@@ -1788,10 +1835,65 @@ function updateGastosSummary() {
     const totalEl = document.getElementById("gastos-total-amount");
     const cashEl = document.getElementById("gastos-total-cash");
     const cardsEl = document.getElementById("gastos-total-cards");
+    const roomEl = document.getElementById("gastos-total-room");
     
     if (totalEl) totalEl.textContent = `USD ${total.toFixed(2)}`;
     if (cashEl) cashEl.textContent = `USD ${cash.toFixed(2)}`;
     if (cardsEl) cardsEl.textContent = `USD ${cards.toFixed(2)}`;
+    if (roomEl) roomEl.textContent = `USD ${room.toFixed(2)}`;
+}
+
+function handlePayRoomSubmit(e) {
+    const amount = parseFloat(document.getElementById("pay-room-amount").value) || 0;
+    const payment_method = document.getElementById("pay-room-payment-method").value;
+    const date = document.getElementById("pay-room-date").value;
+    const notes = document.getElementById("pay-room-notes").value;
+    
+    if (amount <= 0 || !payment_method || !date) return;
+    
+    // Obtener emoji del medio de pago destino
+    const destPM = db.payment_methods.find(p => p.name === payment_method);
+    const destEmoji = destPM ? destPM.emoji : "💳";
+    
+    // 1. Gasto negativo en Habitación (reduce el balance de la habitación)
+    const negExpense = {
+        id: generateUUID(),
+        title: `Liquidación Habitación 🏨 ➜ ${destEmoji} ${payment_method}`,
+        amount: -amount,
+        category: "Habitación",
+        payment_method: "Habitación",
+        date: date,
+        notes: notes,
+        updated_at: new Date().toISOString()
+    };
+    
+    // 2. Gasto positivo en el medio de pago destino (registra el cobro en efectivo/tarjeta)
+    const posExpense = {
+        id: generateUUID(),
+        title: `Liquidación Habitación 🏨 ➜ ${destEmoji} ${payment_method}`,
+        amount: amount,
+        category: "Habitación",
+        payment_method: payment_method,
+        date: date,
+        notes: notes,
+        updated_at: new Date().toISOString()
+    };
+    
+    db.expenses.push(negExpense);
+    db.expenses.push(posExpense);
+    
+    saveLocal("expenses");
+    
+    // Forzar renderizado en "all"
+    const barEl = document.getElementById("gastos-filter-bar");
+    if (barEl) {
+        barEl.querySelectorAll(".filter-chip").forEach(c => {
+            c.classList.remove("active");
+            if (c.getAttribute("data-cat") === "all") c.classList.add("active");
+        });
+    }
+    
+    renderExpensesList("all");
 }
 
 function renderExpensesList(category = "all") {
