@@ -978,6 +978,8 @@ body {
 .gastos-summary-card .summary-breakdown {
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding-top: 12px;
     margin-top: 4px;
@@ -1004,6 +1006,10 @@ body {
     background-color: var(--accent-color);
 }
 
+.breakdown-dot.room {
+    background-color: var(--warning-color);
+}
+
 .breakdown-label {
     color: rgba(255, 255, 255, 0.6);
 }
@@ -1015,6 +1021,17 @@ body {
 
 .gastos-action-bar {
     margin-bottom: 16px;
+}
+
+.gastos-action-bar.flex-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.flex-1 {
+    flex: 1;
 }
 
 .gastos-filter-bar {
@@ -1029,6 +1046,55 @@ body {
 .gastos-filter-bar::-webkit-scrollbar {
     height: 0px;
     background: transparent; /* Ocultar barra de scroll en iOS */
+}
+
+/* Premium Filter Chips */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 4px 4px;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: var(--transition);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.filter-chip.active {
+    background-color: var(--accent-color);
+    color: #ffffff;
+    border-color: var(--accent-color);
+}
+
+.chip-emoji {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.filter-chip.active .chip-emoji {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.chip-text {
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .gastos-list {
