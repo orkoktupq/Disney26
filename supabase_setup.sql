@@ -77,6 +77,8 @@ CREATE TABLE IF NOT EXISTS trip_expenses (
     payment_method VARCHAR(100) NOT NULL,
     date DATE NOT NULL,
     notes TEXT,
+    split_group_id UUID,
+    debtor_name VARCHAR(100),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -199,3 +201,8 @@ CREATE TABLE IF NOT EXISTS shopping_items (
     is_completed BOOLEAN DEFAULT false,
     updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- MIGRACIÓN PARA ACTUALIZAR TABLAS EXISTENTES
+-- Si ya creaste las tablas en Supabase anteriormente, ejecuta estas líneas en tu editor SQL:
+-- ALTER TABLE trip_expenses ADD COLUMN IF NOT EXISTS split_group_id UUID;
+-- ALTER TABLE trip_expenses ADD COLUMN IF NOT EXISTS debtor_name VARCHAR(100);
