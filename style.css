@@ -2084,3 +2084,138 @@ input, textarea, [contenteditable] {
     border: 2px dashed var(--apple-blue);
     transform: scale(0.98);
 }
+
+/* --- CUENTAS CLARAS (SALDOS DE DEUDA) --- */
+.cuentas-claras-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.cuentas-claras-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    color: var(--text-primary);
+}
+
+.cuentas-claras-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cuenta-person-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    transition: var(--transition);
+}
+
+.cuenta-person-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cuenta-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    overflow: hidden;
+}
+
+.cuenta-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cuenta-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.cuenta-person-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cuenta-balance {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--warning-color);
+}
+
+.btn-cobrar {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+}
+
+/* --- FILAS DE DIVISIÓN DE GASTOS EN MODAL --- */
+.split-row {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 1.8fr 1.8fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+@media (max-width: 480px) {
+    .split-row {
+        grid-template-columns: 1fr 1fr;
+    }
+    .split-row input[type="text"] {
+        grid-column: span 2;
+    }
+    .split-row select {
+        font-size: 12px !important;
+    }
+    .split-row input[type="number"] {
+        font-size: 12px !important;
+    }
+    .split-row .btn-delete-split-row {
+        grid-column: span 2;
+        justify-self: end;
+    }
+}
+
+.btn-delete-split-row {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+
+.btn-delete-split-row:hover {
+    background-color: rgba(255, 59, 48, 0.1);
+}
