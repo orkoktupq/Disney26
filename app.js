@@ -700,6 +700,7 @@ function setupEventListeners() {
     document.getElementById("form-attraction").addEventListener("submit", handleAttractionSubmit);
     document.getElementById("form-expense").addEventListener("submit", handleExpenseSubmit);
     document.getElementById("form-pay-room").addEventListener("submit", handlePayRoomSubmit);
+    document.getElementById("form-settle-debt").addEventListener("submit", handleSettleDebtSubmit);
     document.getElementById("form-add-expense-category").addEventListener("submit", handleCategorySubmit);
     document.getElementById("form-add-payment-method").addEventListener("submit", handlePaymentMethodSubmit);
     document.getElementById("form-flight").addEventListener("submit", handleFlightSubmit);
@@ -717,6 +718,20 @@ function setupEventListeners() {
     document.getElementById("btn-add-expense-modal").addEventListener("click", () => {
         document.getElementById("form-expense").reset();
         document.getElementById("expense-id").value = "";
+        document.getElementById("expense-split-group-id").value = "";
+        
+        // Resetear controles de división de gastos
+        document.getElementById("expense-is-split").checked = false;
+        document.getElementById("expense-splits-section").style.display = "none";
+        
+        const amountInput = document.getElementById("expense-amount");
+        amountInput.readOnly = false;
+        amountInput.style.backgroundColor = "";
+        
+        const catGroup = document.getElementById("expense-category").closest(".form-group");
+        if (catGroup) catGroup.style.display = "block";
+        
+        document.getElementById("expense-splits-list").innerHTML = "";
         
         // Cargar por defecto la fecha actual local
         const now = new Date();
@@ -728,6 +743,40 @@ function setupEventListeners() {
         loadExpenseDropdowns();
         document.getElementById("expense-modal-title").textContent = "Registrar Gasto";
         document.getElementById("modal-expense").showModal();
+    });
+
+    // Controlar el cambio en el checkbox "Dividir este Gasto"
+    document.getElementById("expense-is-split").addEventListener("change", (e) => {
+        const section = document.getElementById("expense-splits-section");
+        const amountInput = document.getElementById("expense-amount");
+        const catGroup = document.getElementById("expense-category").closest(".form-group");
+        const listEl = document.getElementById("expense-splits-list");
+        
+        if (e.target.checked) {
+            section.style.display = "block";
+            amountInput.readOnly = true;
+            amountInput.style.backgroundColor = "rgba(0, 0, 0, 0.05)";
+            if (catGroup) catGroup.style.display = "none";
+            
+            // Agregar dos filas vacías por defecto si está vacío
+            if (listEl && listEl.children.length === 0) {
+                const mainTitle = document.getElementById("expense-title").value;
+                addSplitRow(mainTitle, "", "", "");
+                addSplitRow("", "", "", "");
+            }
+        } else {
+            section.style.display = "none";
+            amountInput.readOnly = false;
+            amountInput.style.backgroundColor = "";
+            if (catGroup) catGroup.style.display = "block";
+            if (listEl) listEl.innerHTML = "";
+            amountInput.value = "";
+        }
+    });
+
+    // Botón para añadir nueva línea de división
+    document.getElementById("btn-add-split-row").addEventListener("click", () => {
+        addSplitRow("", "", "", "");
     });
 
     // Botones para abrir sub-modales de agregar categoría y medio de pago
@@ -1925,6 +1974,9 @@ function updateGastosSummary() {
         `;
         breakdownEl.appendChild(item);
     });
+    
+    // Actualizar el panel de deudas/saldos de personas
+    updateCuentasClaras();
 }
 
 function handlePayRoomSubmit(e) {
@@ -2061,49 +2113,126 @@ function openEditExpenseModal(id) {
     if (!expense) return;
     
     document.getElementById("form-expense").reset();
-    document.getElementById("expense-id").value = expense.id;
-    document.getElementById("expense-title").value = expense.title;
-    document.getElementById("expense-amount").value = expense.amount;
-    document.getElementById("expense-date").value = expense.date;
     
+    // Configurar campos generales
+    document.getElementById("expense-title").value = expense.title;
+    document.getElementById("expense-date").value = expense.date;
     loadExpenseDropdowns();
-    document.getElementById("expense-category").value = expense.category;
     document.getElementById("expense-payment-method").value = expense.payment_method;
     document.getElementById("expense-notes").value = expense.notes || "";
     
-    document.getElementById("expense-modal-title").textContent = "Editar Gasto";
+    const isSplit = !!expense.split_group_id;
+    document.getElementById("expense-is-split").checked = isSplit;
+    
+    const section = document.getElementById("expense-splits-section");
+    const amountInput = document.getElementById("expense-amount");
+    const catGroup = document.getElementById("expense-category").closest(".form-group");
+    const listEl = document.getElementById("expense-splits-list");
+    listEl.innerHTML = "";
+    
+    if (isSplit) {
+        document.getElementById("expense-id").value = "";
+        document.getElementById("expense-split-group-id").value = expense.split_group_id;
+        
+        section.style.display = "block";
+        amountInput.readOnly = true;
+        amountInput.style.backgroundColor = "rgba(0, 0, 0, 0.05)";
+        if (catGroup) catGroup.style.display = "none";
+        
+        // Obtener todos los sub-gastos del grupo
+        const groupExpenses = db.expenses.filter(e => e.split_group_id === expense.split_group_id);
+        groupExpenses.forEach(ge => {
+            addSplitRow(ge.title, ge.amount.toString(), ge.category, ge.debtor_name || "");
+        });
+    } else {
+        document.getElementById("expense-id").value = expense.id;
+        document.getElementById("expense-split-group-id").value = "";
+        
+        section.style.display = "none";
+        amountInput.readOnly = false;
+        amountInput.style.backgroundColor = "";
+        if (catGroup) catGroup.style.display = "block";
+        
+        document.getElementById("expense-amount").value = expense.amount;
+        document.getElementById("expense-category").value = expense.category;
+    }
+    
+    document.getElementById("expense-modal-title").textContent = isSplit ? "Editar Gasto Dividido" : "Editar Gasto";
     document.getElementById("modal-expense").showModal();
 }
 
-function handleExpenseSubmit(e) {
+async function handleExpenseSubmit(e) {
     const id = document.getElementById("expense-id").value;
+    const splitGroupId = document.getElementById("expense-split-group-id").value;
     const title = document.getElementById("expense-title").value;
     const amount = parseFloat(document.getElementById("expense-amount").value) || 0;
     const date = document.getElementById("expense-date").value;
     const category = document.getElementById("expense-category").value;
     const payment_method = document.getElementById("expense-payment-method").value;
     const notes = document.getElementById("expense-notes").value;
+    const isSplitChecked = document.getElementById("expense-is-split").checked;
     
-    if (id) {
-        const expIdx = db.expenses.findIndex(e => e.id === id);
-        if (expIdx !== -1) {
-            db.expenses[expIdx].title = title;
-            db.expenses[expIdx].amount = amount;
-            db.expenses[expIdx].date = date;
-            db.expenses[expIdx].category = category;
-            db.expenses[expIdx].payment_method = payment_method;
-            db.expenses[expIdx].notes = notes;
-            db.expenses[expIdx].updated_at = new Date().toISOString();
+    // 1. Eliminar versiones previas de esta transacción para evitar duplicados/desfases
+    if (splitGroupId) {
+        // Estábamos editando un gasto dividido anterior
+        db.expenses = db.expenses.filter(exp => exp.split_group_id !== splitGroupId);
+        if (window.navigator.onLine && supabaseClient) {
+            try {
+                await supabaseClient.from("trip_expenses").delete().eq("split_group_id", splitGroupId);
+            } catch (err) {
+                console.warn("Error eliminando grupo previo de Supabase:", err);
+            }
         }
+    } else if (id) {
+        // Estábamos editando un gasto individual anterior
+        db.expenses = db.expenses.filter(exp => exp.id !== id);
+        if (window.navigator.onLine && supabaseClient) {
+            const isValidUUID = (val) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+            if (isValidUUID(id)) {
+                try {
+                    await supabaseClient.from("trip_expenses").delete().eq("id", id);
+                } catch (err) {
+                    console.warn("Error eliminando gasto previo de Supabase:", err);
+                }
+            }
+        }
+    }
+    
+    // 2. Insertar los nuevos registros
+    if (isSplitChecked) {
+        const finalGroupId = splitGroupId || generateUUID();
+        const rows = document.getElementById("expense-splits-list").querySelectorAll(".split-row");
+        rows.forEach(row => {
+            const sTitle = row.querySelector(".split-title").value || title;
+            const sAmount = parseFloat(row.querySelector(".split-amount").value) || 0;
+            const sCategory = row.querySelector(".split-category").value;
+            const sDebtor = row.querySelector(".split-debtor").value || null;
+            
+            const newSubExpense = {
+                id: generateUUID(),
+                title: sTitle,
+                amount: sAmount,
+                category: sCategory,
+                payment_method: payment_method,
+                date: date,
+                notes: notes,
+                split_group_id: finalGroupId,
+                debtor_name: sDebtor,
+                updated_at: new Date().toISOString()
+            };
+            db.expenses.push(newSubExpense);
+        });
     } else {
         const newExpense = {
-            id: generateUUID(),
-            title,
-            amount,
-            category,
-            payment_method,
-            date,
-            notes,
+            id: id || generateUUID(),
+            title: title,
+            amount: amount,
+            category: category,
+            payment_method: payment_method,
+            date: date,
+            notes: notes,
+            split_group_id: null,
+            debtor_name: null,
             updated_at: new Date().toISOString()
         };
         db.expenses.push(newExpense);
@@ -2131,16 +2260,38 @@ function handleExpenseSubmit(e) {
 }
 
 async function deleteExpense(id) {
-    if (confirm("¿Quieres eliminar este gasto?")) {
-        db.expenses = db.expenses.filter(e => e.id !== id);
-        saveLocal("expenses");
+    const expense = db.expenses.find(e => e.id === id);
+    if (!expense) return;
+    
+    const isSplit = !!expense.split_group_id;
+    const confirmMsg = isSplit
+        ? "¿Quieres eliminar esta compra completa con todas sus divisiones?"
+        : "¿Quieres eliminar este gasto?";
         
-        const isValidUUID = (val) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
-        if (window.navigator.onLine && supabaseClient && isValidUUID(id)) {
-            try {
-                await supabaseClient.from("trip_expenses").delete().eq("id", id);
-            } catch (err) {
-                console.warn("Fallo al eliminar gasto de Supabase:", err);
+    if (confirm(confirmMsg)) {
+        if (isSplit) {
+            const splitGroupId = expense.split_group_id;
+            db.expenses = db.expenses.filter(e => e.split_group_id !== splitGroupId);
+            saveLocal("expenses");
+            
+            if (window.navigator.onLine && supabaseClient) {
+                try {
+                    await supabaseClient.from("trip_expenses").delete().eq("split_group_id", splitGroupId);
+                } catch (err) {
+                    console.warn("Fallo al eliminar grupo de gastos de Supabase:", err);
+                }
+            }
+        } else {
+            db.expenses = db.expenses.filter(e => e.id !== id);
+            saveLocal("expenses");
+            
+            const isValidUUID = (val) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+            if (window.navigator.onLine && supabaseClient && isValidUUID(id)) {
+                try {
+                    await supabaseClient.from("trip_expenses").delete().eq("id", id);
+                } catch (err) {
+                    console.warn("Fallo al eliminar gasto de Supabase:", err);
+                }
             }
         }
         
@@ -2148,6 +2299,207 @@ async function deleteExpense(id) {
         const activeCat = activeChip ? activeChip.getAttribute("data-cat") : "all";
         renderExpensesList(activeCat);
     }
+}
+
+// --- UTILERÍAS DE DESGLOSE / DIVISIÓN DE GASTOS ---
+function addSplitRow(title = "", amount = "", category = "", debtor = "") {
+    const listEl = document.getElementById("expense-splits-list");
+    if (!listEl) return;
+    
+    const row = document.createElement("div");
+    row.className = "split-row";
+    
+    // Crear select de categorías
+    let catOptions = "";
+    db.expense_categories.forEach(c => {
+        const selected = c.name === category ? "selected" : "";
+        catOptions += `<option value="${c.name}" ${selected}>${c.emoji} ${c.name}</option>`;
+    });
+    
+    // Crear select de deudores
+    const debtors = ["Todos", "Sofi", "Juanma", "Agus", "Cata"];
+    let debtorOptions = "";
+    debtors.forEach(d => {
+        const val = d === "Todos" ? "" : d;
+        const selected = val === debtor ? "selected" : "";
+        debtorOptions += `<option value="${val}" ${selected}>${d === "Todos" ? "👥 Todos" : "👤 " + d}</option>`;
+    });
+    
+    row.innerHTML = `
+        <input type="text" class="apple-input split-title" placeholder="Concepto (ej: Remera)" value="${title}" required style="padding: 6px 10px; font-size:13px;">
+        <input type="number" class="apple-input split-amount" placeholder="0.00" step="0.01" min="0.01" value="${amount}" required style="padding: 6px 10px; font-size:13px;">
+        <select class="apple-select split-category" required style="padding: 6px 10px; font-size:13px;">
+            ${catOptions}
+        </select>
+        <select class="apple-select split-debtor" required style="padding: 6px 10px; font-size:13px;">
+            ${debtorOptions}
+        </select>
+        <button type="button" class="btn-delete-split-row" title="Eliminar fila">✕</button>
+    `;
+    
+    // Event listener para eliminar fila
+    row.querySelector(".btn-delete-split-row").addEventListener("click", () => {
+        row.remove();
+        calculateSplitTotal();
+    });
+    
+    // Event listener para recalcular total al cambiar monto
+    row.querySelector(".split-amount").addEventListener("input", calculateSplitTotal);
+    
+    listEl.appendChild(row);
+    calculateSplitTotal();
+}
+
+function calculateSplitTotal() {
+    const listEl = document.getElementById("expense-splits-list");
+    if (!listEl) return;
+    
+    let total = 0;
+    listEl.querySelectorAll(".split-row").forEach(row => {
+        const val = parseFloat(row.querySelector(".split-amount").value) || 0;
+        total += val;
+    });
+    
+    document.getElementById("expense-amount").value = total > 0 ? total.toFixed(2) : "";
+}
+
+// --- UTILERÍAS DE COBRO / LIQUIDACIÓN DE CUENTAS CLARAS ---
+function openSettleDebtModal(person, balance) {
+    document.getElementById("form-settle-debt").reset();
+    document.getElementById("settle-debt-person").value = person;
+    
+    const label = document.getElementById("settle-debt-label");
+    if (label) label.textContent = `Monto a Cobrar de ${person} (USD)`;
+    
+    document.getElementById("settle-debt-amount").value = balance ? balance.toFixed(2) : "";
+    
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    document.getElementById("settle-debt-date").value = `${year}-${month}-${day}`;
+    
+    document.getElementById("settle-debt-notes").value = `Devolución de deudas - ${person}`;
+    
+    // Cargar medios de pago (filtrando Habitación)
+    const selectEl = document.getElementById("settle-debt-payment-method");
+    if (selectEl) {
+        selectEl.innerHTML = "";
+        db.payment_methods.forEach(pm => {
+            if (pm.name.toLowerCase() !== "habitación" && !pm.name.toLowerCase().includes("habitacion")) {
+                const opt = document.createElement("option");
+                opt.value = pm.name;
+                opt.textContent = `${pm.emoji} ${pm.name}`;
+                selectEl.appendChild(opt);
+            }
+        });
+    }
+    
+    document.getElementById("modal-settle-debt").showModal();
+}
+
+function handleSettleDebtSubmit(e) {
+    const person = document.getElementById("settle-debt-person").value;
+    const amount = parseFloat(document.getElementById("settle-debt-amount").value) || 0;
+    const payment_method = document.getElementById("settle-debt-payment-method").value;
+    const date = document.getElementById("settle-debt-date").value;
+    const notes = document.getElementById("settle-debt-notes").value;
+    
+    if (amount <= 0 || !payment_method || !date || !person) return;
+    
+    // Crear gasto negativo para saldar la deuda
+    const settlementExpense = {
+        id: generateUUID(),
+        title: `Devolución de deudas - 👤 ${person}`,
+        amount: -amount,
+        category: "Misceláneas",
+        payment_method: payment_method,
+        date: date,
+        notes: notes,
+        split_group_id: null,
+        debtor_name: person,
+        updated_at: new Date().toISOString()
+    };
+    
+    db.expenses.push(settlementExpense);
+    saveLocal("expenses");
+    
+    // Forzar renderizado en "all"
+    const barEl = document.getElementById("gastos-filter-bar");
+    if (barEl) {
+        barEl.querySelectorAll(".filter-chip").forEach(c => {
+            c.classList.remove("active");
+            if (c.getAttribute("data-cat") === "all") c.classList.add("active");
+        });
+    }
+    
+    renderExpensesList("all");
+}
+
+function updateCuentasClaras() {
+    const cardEl = document.getElementById("cuentas-claras-card");
+    const listEl = document.getElementById("cuentas-claras-list");
+    if (!cardEl || !listEl) return;
+    
+    const balances = {
+        "Sofi": 0,
+        "Juanma": 0,
+        "Agus": 0,
+        "Cata": 0
+    };
+    
+    db.expenses.forEach(e => {
+        if (e.debtor_name && balances.hasOwnProperty(e.debtor_name)) {
+            balances[e.debtor_name] += parseFloat(e.amount) || 0;
+        }
+    });
+    
+    listEl.innerHTML = "";
+    let hasActiveBalances = false;
+    
+    const avatarMap = {
+        "Sofi": '<img src="assets/avatar_sofi.png" style="width:100%; height:100%; object-fit:cover;" alt="Sofi">',
+        "Juanma": '<img src="assets/avatar_juanma.png" style="width:100%; height:100%; object-fit:cover;" alt="Juanma">',
+        "Agus": '<img src="assets/avatar_agus.jpg" style="width:100%; height:100%; object-fit:cover; object-position:center top;" alt="Agus">',
+        "Cata": '<img src="assets/avatar_cata.png" style="width:100%; height:100%; object-fit:contain;" alt="Cata">'
+    };
+    
+    for (const [person, bal] of Object.entries(balances)) {
+        if (Math.abs(bal) > 0.009) {
+            hasActiveBalances = true;
+            
+            const row = document.createElement("div");
+            row.className = "cuenta-person-row";
+            
+            const avatarContent = avatarMap[person] || `<span>${person[0]}</span>`;
+            const isOwed = bal > 0;
+            const balanceText = isOwed ? `Debe ${formatUSD(bal)}` : `A favor ${formatUSD(Math.abs(bal))}`;
+            const balanceColor = isOwed ? "var(--warning-color)" : "var(--success-color)";
+            
+            row.innerHTML = `
+                <div class="cuenta-person-left">
+                    <div class="cuenta-avatar">
+                        ${avatarContent}
+                    </div>
+                    <span class="cuenta-name">${person}</span>
+                </div>
+                <div class="cuenta-person-right">
+                    <span class="cuenta-balance" style="color: ${balanceColor};">${balanceText}</span>
+                    <button class="apple-btn-secondary btn-cobrar" data-person="${person}" data-balance="${bal.toFixed(2)}">
+                        ${isOwed ? "Cobrar" : "Liquidar"}
+                    </button>
+                </div>
+            `;
+            
+            row.querySelector(".btn-cobrar").addEventListener("click", () => {
+                openSettleDebtModal(person, Math.abs(bal));
+            });
+            
+            listEl.appendChild(row);
+        }
+    }
+    
+    cardEl.style.display = hasActiveBalances ? "block" : "none";
 }
 
 function handleCategorySubmit(e) {
