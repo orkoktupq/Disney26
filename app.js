@@ -552,6 +552,48 @@ function initLocalDB() {
             triggerBackgroundSync();
         }
     }
+
+    // Migración: inyectar medio de pago y categoría "Habitación" si no existen
+    const hasHabitacionPM = db.payment_methods.some(pm => pm.name === "Habitación");
+    if (!hasHabitacionPM) {
+        db.payment_methods.push({ id: generateUUID(), name: "Habitación", emoji: "🏨", is_default: true, updated_at: new Date().toISOString() });
+        localStorage.setItem("disney2026_payment_methods", JSON.stringify(db.payment_methods));
+        db.dirty.payment_methods = true;
+    }
+    const hasHabitacionCat = db.expense_categories.some(c => c.name === "Habitación");
+    if (!hasHabitacionCat) {
+        db.expense_categories.push({ id: generateUUID(), name: "Habitación", emoji: "🏨", is_default: true, updated_at: new Date().toISOString() });
+        localStorage.setItem("disney2026_expense_categories", JSON.stringify(db.expense_categories));
+        db.dirty.expense_categories = true;
+    }
+
+    // Deduplicar itinerario: mantener solo la versión más reciente por fecha
+    const itineraryByDate = {};
+    db.itinerary.forEach(item => {
+        const existing = itineraryByDate[item.date];
+        if (!existing || new Date(item.updated_at || 0) > new Date(existing.updated_at || 0)) {
+            itineraryByDate[item.date] = item;
+        }
+    });
+    const dedupedItinerary = Object.values(itineraryByDate);
+    if (dedupedItinerary.length < db.itinerary.length) {
+        console.log(`Deduplicación de itinerario: ${db.itinerary.length} → ${dedupedItinerary.length} items`);
+        db.itinerary = dedupedItinerary;
+        localStorage.setItem("disney2026_itinerary", JSON.stringify(db.itinerary));
+    }
+}
+
+// Formateador de moneda USD con formato argentino: USD XXX.XXX.XXX,XX
+function formatUSD(amount) {
+    const num = parseFloat(amount) || 0;
+    const isNeg = num < 0;
+    const abs = Math.abs(num);
+    // Separar parte entera y decimal
+    const parts = abs.toFixed(2).split(".");
+    // Agregar puntos como separador de miles
+    const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const formatted = `USD ${isNeg ? "-" : ""}${intPart},${parts[1]}`;
+    return formatted;
 }
 
 function saveLocal(key) {
@@ -1813,34 +1855,49 @@ function loadExpenseDropdowns() {
 
 function updateGastosSummary() {
     let total = 0;
-    let cash = 0;
-    let cards = 0;
-    let room = 0;
+    const perMethod = {}; // { "Efectivo": 72.10, "Tarjeta Sofi Santander": 48.50, ... }
     
     db.expenses.forEach(e => {
         const amt = parseFloat(e.amount) || 0;
         total += amt;
-        
-        const methodLower = e.payment_method.toLowerCase();
-        
-        if (methodLower === "habitación" || methodLower.includes("habitacion")) {
-            room += amt;
-        } else if (methodLower.includes("efectivo") || methodLower === "cash") {
-            cash += amt;
-        } else {
-            cards += amt;
-        }
+        const pm = e.payment_method || "Otro";
+        perMethod[pm] = (perMethod[pm] || 0) + amt;
     });
     
     const totalEl = document.getElementById("gastos-total-amount");
-    const cashEl = document.getElementById("gastos-total-cash");
-    const cardsEl = document.getElementById("gastos-total-cards");
-    const roomEl = document.getElementById("gastos-total-room");
+    if (totalEl) totalEl.textContent = formatUSD(total);
     
-    if (totalEl) totalEl.textContent = `USD ${total.toFixed(2)}`;
-    if (cashEl) cashEl.textContent = `USD ${cash.toFixed(2)}`;
-    if (cardsEl) cardsEl.textContent = `USD ${cards.toFixed(2)}`;
-    if (roomEl) roomEl.textContent = `USD ${room.toFixed(2)}`;
+    // Generar breakdown dinámicamente
+    const breakdownEl = document.getElementById("gastos-breakdown");
+    if (!breakdownEl) return;
+    breakdownEl.innerHTML = "";
+    
+    // Colores para los dots por medio de pago
+    const dotColors = ["#34c759", "#0a84ff", "#ff9500", "#ff375f", "#af52de", "#5ac8fa", "#ff6b35", "#64d2ff"];
+    
+    // Ordenar: primero los que tienen saldo > 0, luego por nombre
+    const methodOrder = db.payment_methods.map(pm => pm.name);
+    const sortedMethods = Object.keys(perMethod).sort((a, b) => {
+        const idxA = methodOrder.indexOf(a);
+        const idxB = methodOrder.indexOf(b);
+        return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+    
+    sortedMethods.forEach((methodName, i) => {
+        const amt = perMethod[methodName];
+        const pmObj = db.payment_methods.find(p => p.name === methodName);
+        const emoji = pmObj ? pmObj.emoji : "💳";
+        const dotColor = dotColors[i % dotColors.length];
+        
+        const item = document.createElement("div");
+        item.className = "breakdown-item";
+        item.innerHTML = `
+            <span class="breakdown-dot" style="background-color: ${dotColor};"></span>
+            <span class="breakdown-label">${emoji} ${methodName}:</span>
+            <span class="breakdown-val">${formatUSD(amt)}</span>
+        `;
+        breakdownEl.appendChild(item);
+    });
 }
 
 function handlePayRoomSubmit(e) {
@@ -1952,7 +2009,7 @@ function renderExpensesList(category = "all") {
                 </div>
             </div>
             <div class="gasto-card-right">
-                <span class="gasto-amount">USD ${parseFloat(expense.amount).toFixed(2)}</span>
+                <span class="gasto-amount">${formatUSD(expense.amount)}</span>
                 <span class="gasto-date">${formattedDate}</span>
                 <div class="gasto-actions">
                     <button class="btn-edit-gasto" data-action="edit" title="Editar">
@@ -2889,8 +2946,27 @@ async function runSupabaseSync() {
                         }
                     });
                     
-                    db[localKey] = merged;
-                    localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(merged));
+                    // Deduplicar itinerario post-merge (mantener solo la versión más reciente por fecha)
+                    if (localKey === "itinerary") {
+                        const byDate = {};
+                        merged.forEach(item => {
+                            const ex = byDate[item.date];
+                            if (!ex || new Date(item.updated_at || 0) > new Date(ex.updated_at || 0)) {
+                                byDate[item.date] = item;
+                            }
+                        });
+                        const deduped = Object.values(byDate);
+                        if (deduped.length < merged.length) {
+                            db[localKey] = deduped;
+                            localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(deduped));
+                        } else {
+                            db[localKey] = merged;
+                            localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(merged));
+                        }
+                    } else {
+                        db[localKey] = merged;
+                        localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(merged));
+                    }
                 }
             } catch (tableErr) {
                 console.warn(`Error al sincronizar la tabla ${supabaseTable}:`, tableErr.message || tableErr);
