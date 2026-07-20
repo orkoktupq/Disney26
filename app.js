@@ -107,7 +107,7 @@ const DEFAULT_EXPENSE_CATEGORIES = [
     { id: "ec4", name: "Super", emoji: "🛒", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
     { id: "ec5", name: "Tecnologia", emoji: "💻", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
     { id: "ec6", name: "Vestimenta", emoji: "👕", is_default: true, updated_at: "2026-07-14T08:00:00Z" },
-    { id: "ec7", name: "Habitación", emoji: "🏨", is_default: true, updated_at: "2026-07-14T08:00:00Z" }
+    { id: "ec7", name: "Misceláneas", emoji: "📦", is_default: true, updated_at: "2026-07-14T08:00:00Z" }
 ];
 
 const DEFAULT_PAYMENT_METHODS = [
@@ -560,11 +560,38 @@ function initLocalDB() {
         localStorage.setItem("disney2026_payment_methods", JSON.stringify(db.payment_methods));
         db.dirty.payment_methods = true;
     }
-    const hasHabitacionCat = db.expense_categories.some(c => c.name === "Habitación");
-    if (!hasHabitacionCat) {
-        db.expense_categories.push({ id: generateUUID(), name: "Habitación", emoji: "🏨", is_default: true, updated_at: new Date().toISOString() });
+    // Migración: renombrar categoría "Habitación" a "Misceláneas" e inyectar si no existe
+    let catChanged = false;
+    db.expense_categories.forEach(c => {
+        if (c.name === "Habitación") {
+            c.name = "Misceláneas";
+            c.emoji = "📦";
+            c.updated_at = new Date().toISOString();
+            catChanged = true;
+        }
+    });
+    const hasMiscelaneasCat = db.expense_categories.some(c => c.name === "Misceláneas");
+    if (!hasMiscelaneasCat) {
+        db.expense_categories.push({ id: generateUUID(), name: "Misceláneas", emoji: "📦", is_default: true, updated_at: new Date().toISOString() });
+        catChanged = true;
+    }
+    if (catChanged) {
         localStorage.setItem("disney2026_expense_categories", JSON.stringify(db.expense_categories));
         db.dirty.expense_categories = true;
+    }
+
+    // Renombrar categoría en gastos existentes de "Habitación" a "Misceláneas"
+    let expChanged = false;
+    db.expenses.forEach(e => {
+        if (e.category === "Habitación") {
+            e.category = "Misceláneas";
+            e.updated_at = new Date().toISOString();
+            expChanged = true;
+        }
+    });
+    if (expChanged) {
+        localStorage.setItem("disney2026_expenses", JSON.stringify(db.expenses));
+        db.dirty.expenses = true;
     }
 
     // Deduplicar itinerario: mantener solo la versión más reciente por fecha
@@ -1917,7 +1944,7 @@ function handlePayRoomSubmit(e) {
         id: generateUUID(),
         title: `Liquidación Habitación 🏨 ➜ ${destEmoji} ${payment_method}`,
         amount: -amount,
-        category: "Habitación",
+        category: "Misceláneas",
         payment_method: "Habitación",
         date: date,
         notes: notes,
@@ -1929,7 +1956,7 @@ function handlePayRoomSubmit(e) {
         id: generateUUID(),
         title: `Liquidación Habitación 🏨 ➜ ${destEmoji} ${payment_method}`,
         amount: amount,
-        category: "Habitación",
+        category: "Misceláneas",
         payment_method: payment_method,
         date: date,
         notes: notes,
