@@ -175,7 +175,7 @@ INSERT INTO expense_categories (name, emoji, is_default) VALUES
 ('Super', '🛒', true),
 ('Tecnologia', '💻', true),
 ('Vestimenta', '👕', true),
-('Habitación', '🏨', true);
+('Misceláneas', '📦', true);
 
 INSERT INTO payment_methods (name, emoji, is_default) VALUES
 ('Efectivo', '💵', true),
