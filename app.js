@@ -2111,16 +2111,23 @@ function handleExpenseSubmit(e) {
     
     saveLocal("expenses");
     
+    // Obtener la categoría del filtro que está activa antes de guardar
+    let activeCat = "all";
+    const activeChip = document.querySelector("#gastos-filter-bar .filter-chip.active");
+    if (activeChip) {
+        activeCat = activeChip.getAttribute("data-cat");
+    }
+    
     renderGastosFilterBar();
     const barEl = document.getElementById("gastos-filter-bar");
     if (barEl) {
         barEl.querySelectorAll(".filter-chip").forEach(c => {
             c.classList.remove("active");
-            if (c.getAttribute("data-cat") === category) c.classList.add("active");
+            if (c.getAttribute("data-cat") === activeCat) c.classList.add("active");
         });
     }
     
-    renderExpensesList(category);
+    renderExpensesList(activeCat);
 }
 
 async function deleteExpense(id) {
