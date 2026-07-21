@@ -2465,13 +2465,13 @@ function addSplitRow(title = "", amount = "", category = "", debtor = "") {
         catOptions += `<option value="${c.name}" ${selected}>${c.emoji} ${c.name}</option>`;
     });
     
-    // Crear select de deudores
-    const debtors = ["Todos", "Sofi", "Juanma", "Agus", "Cata"];
+    // Crear select de deudores (solo terceros de quienes recibir devoluciones)
+    const debtors = ["Familia / Nosotros", "Agus", "Cata"];
     let debtorOptions = "";
     debtors.forEach(d => {
-        const val = d === "Todos" ? "" : d;
+        const val = d === "Familia / Nosotros" ? "" : d;
         const selected = val === debtor ? "selected" : "";
-        debtorOptions += `<option value="${val}" ${selected}>${d === "Todos" ? "👥 Todos" : "👤 " + d}</option>`;
+        debtorOptions += `<option value="${val}" ${selected}>${d === "Familia / Nosotros" ? "👥 Familia / Nosotros" : "👤 " + d}</option>`;
     });
     
     row.innerHTML = `
@@ -2591,8 +2591,6 @@ function updateCuentasClaras() {
     if (!cardEl || !listEl) return;
     
     const balances = {
-        "Sofi": 0,
-        "Juanma": 0,
         "Agus": 0,
         "Cata": 0
     };
