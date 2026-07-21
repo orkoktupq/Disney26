@@ -3385,16 +3385,17 @@ async function runSupabaseSync() {
                 
                 if (cloudData) {
                     // Filtrar datos locales:
-                    // 1. Mantener los de ID heredado/no-UUID (se quedan locales para demo/iniciales).
-                    // 2. Mantener los de ID UUID válido SOLO si existen en la nube, o si la tabla todavía tiene cambios pendientes de subir (dirty).
-                    // Esto elimina automáticamente en local cualquier dato limpio que haya sido borrado de la nube.
+                    // 1. Mantener los de ID heredado/no-UUID (demo/iniciales) SOLO si la nube está vacía.
+                    //    Si la nube ya tiene datos reales del usuario, descartamos las plantillas locales demo.
+                    // 2. Mantener los de ID UUID válido si existen en la nube, o si están pendientes de subir (dirty).
+                    // Esto elimina automáticamente en local cualquier dato limpio borrado de la nube y evita contaminación de demos.
                     const merged = [];
                     db[localKey].forEach(localRow => {
                         const inCloud = cloudData.some(c => c.id === localRow.id);
                         const isLegacyId = !isValidUUID(localRow.id);
                         const isPendingUpload = db.dirty[localKey];
                         
-                        if (inCloud || isLegacyId || isPendingUpload) {
+                        if (inCloud || isPendingUpload || (isLegacyId && cloudData.length === 0)) {
                             merged.push(localRow);
                         }
                     });
