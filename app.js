@@ -3336,30 +3336,33 @@ async function runSupabaseSync() {
 
     try {
         for (const [localKey, supabaseTable] of Object.entries(tablesMap)) {
-            // 1. Si hay cambios locales "sucios" (dirty), subir solo los que tengan UUID válido
+            // 1. Si hay cambios locales "sucios" (dirty), subir solo los que tengan UUID válido en lote (bulk)
             if (db.dirty[localKey]) {
                 const localData = db[localKey];
+                const rowsToUpsert = localData.filter(row => isValidUUID(row.id));
+                let tableHasUploadError = false;
                 
-                for (const row of localData) {
-                    // Solo hacer upsert si el ID es un UUID válido (no "i1", "a1", etc.)
-                    if (isValidUUID(row.id)) {
-                        try {
-                            const { error } = await supabaseClient
-                                .from(supabaseTable)
-                                .upsert(row);
-                            if (error) {
-                                console.warn(`Upsert error en ${supabaseTable}:`, error.message);
-                                hasSyncErrors = true;
-                            }
-                        } catch (e) {
-                            console.warn(`Error al subir fila a ${supabaseTable}:`, e);
+                if (rowsToUpsert.length > 0) {
+                    try {
+                        const { error } = await supabaseClient
+                            .from(supabaseTable)
+                            .upsert(rowsToUpsert);
+                        if (error) {
+                            console.warn(`Upsert error en ${supabaseTable}:`, error.message);
+                            tableHasUploadError = true;
                             hasSyncErrors = true;
                         }
+                    } catch (e) {
+                        console.warn(`Error al subir datos a ${supabaseTable}:`, e);
+                        tableHasUploadError = true;
+                        hasSyncErrors = true;
                     }
                 }
                 
-                // Apagar bandera dirty
-                db.dirty[localKey] = false;
+                // Apagar bandera dirty SOLO si no hubo errores al subir
+                if (!tableHasUploadError) {
+                    db.dirty[localKey] = false;
+                }
             }
             
             // 2. Traer los datos más nuevos de Supabase
