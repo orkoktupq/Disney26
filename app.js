@@ -3268,6 +3268,7 @@ function updateSyncIndicator(color) {
     const titleMap = {
         "green": "Sincronizado con Supabase (Local-First)",
         "orange": "Sincronizando...",
+        "yellow": "Advertencia: Error al sincronizar algunas tablas (¿Falta desactivar RLS en Supabase?)",
         "red": "Modo offline (Sin conexión / Error Supabase)"
     };
     document.getElementById("sync-indicator").title = titleMap[color] || "";
@@ -3278,6 +3279,7 @@ async function runSupabaseSync() {
     if (!supabaseClient) return;
     
     updateSyncIndicator("orange");
+    let hasSyncErrors = false;
     
     const tablesMap = {
         itinerary: "itinerary_items",
@@ -3306,9 +3308,13 @@ async function runSupabaseSync() {
                             const { error } = await supabaseClient
                                 .from(supabaseTable)
                                 .upsert(row);
-                            if (error) console.warn(`Upsert error en ${supabaseTable}:`, error.message);
+                            if (error) {
+                                console.warn(`Upsert error en ${supabaseTable}:`, error.message);
+                                hasSyncErrors = true;
+                            }
                         } catch (e) {
                             console.warn(`Error al subir fila a ${supabaseTable}:`, e);
+                            hasSyncErrors = true;
                         }
                     }
                 }
@@ -3379,13 +3385,14 @@ async function runSupabaseSync() {
                 }
             } catch (tableErr) {
                 console.warn(`Error al sincronizar la tabla ${supabaseTable}:`, tableErr.message || tableErr);
+                hasSyncErrors = true;
                 // No propagamos para que el resto de las tablas válidas sí se sincronicen
             }
         }
         
         // Guardar estado dirty finalizado
         localStorage.setItem("disney2026_dirty", JSON.stringify(db.dirty));
-        updateSyncIndicator("green");
+        updateSyncIndicator(hasSyncErrors ? "yellow" : "green");
         
         // Re-renderizar pestaña activa para reflejar cambios de nube
         switchTab(currentActiveTab);
