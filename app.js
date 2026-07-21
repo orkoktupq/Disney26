@@ -758,42 +758,6 @@ function initLocalDB() {
         localStorage.setItem("disney2026_attractions", JSON.stringify(db.attractions));
     }
 
-    // Migración para convertir cualquier ID no-UUID a UUID válido
-    let idMigrationChanged = false;
-    const tablesToMigrate = ["itinerary", "attractions", "flights", "sensible", "expenses", "expense_categories", "payment_methods", "compras"];
-    
-    tablesToMigrate.forEach(tableKey => {
-        let tableChanged = false;
-        db[tableKey].forEach(item => {
-            if (!isValidUUID(item.id)) {
-                item.id = generateUUID();
-                item.updated_at = new Date().toISOString();
-                idMigrationChanged = true;
-                tableChanged = true;
-            }
-        });
-        if (tableChanged) {
-            localStorage.setItem(`disney2026_${tableKey}`, JSON.stringify(db[tableKey]));
-            db.dirty[tableKey] = true;
-        }
-    });
-    
-    // Forzar sincronización completa una vez para asegurar que todo lo local suba a Supabase
-    const forceSyncKey = "disney2026_force_sync_v3";
-    if (!localStorage.getItem(forceSyncKey)) {
-        tablesToMigrate.forEach(k => {
-            db.dirty[k] = true;
-        });
-        idMigrationChanged = true;
-        localStorage.setItem(forceSyncKey, "true");
-    }
-
-    if (idMigrationChanged) {
-        localStorage.setItem("disney2026_dirty", JSON.stringify(db.dirty));
-        if (supabaseClient) {
-            triggerBackgroundSync();
-        }
-    }
 }
 
 // Formateador de moneda USD con formato argentino: USD XXX.XXX.XXX,XX
@@ -1637,6 +1601,10 @@ function handleItinerarySubmit(e) {
     db.itinerary[dayIndex].park_name = checkedActivities.join(", ");
     db.itinerary[dayIndex].updated_at = new Date().toISOString();
     
+    if (!isValidUUID(db.itinerary[dayIndex].id)) {
+        db.itinerary[dayIndex].id = generateUUID();
+    }
+    
     saveLocal("itinerary");
     renderCalendarList();
 }
@@ -1915,6 +1883,9 @@ function toggleAttractionComplete(id) {
     if (attIdx !== -1) {
         db.attractions[attIdx].is_completed = !db.attractions[attIdx].is_completed;
         db.attractions[attIdx].updated_at = new Date().toISOString();
+        if (!isValidUUID(db.attractions[attIdx].id)) {
+            db.attractions[attIdx].id = generateUUID();
+        }
         saveLocal("attractions");
         renderParkChecklist();
     }
@@ -2023,6 +1994,9 @@ function handleAttractionSubmit(e) {
             db.attractions[attIdx].land = land;
             db.attractions[attIdx].notes = notes;
             db.attractions[attIdx].updated_at = new Date().toISOString();
+            if (!isValidUUID(db.attractions[attIdx].id)) {
+                db.attractions[attIdx].id = generateUUID();
+            }
         }
     } else {
         const park = activePark;
@@ -2727,6 +2701,9 @@ function handleFlightSubmit(e) {
             db.flights[flightIdx].date = date;
             db.flights[flightIdx].code = code;
             db.flights[flightIdx].updated_at = new Date().toISOString();
+            if (!isValidUUID(db.flights[flightIdx].id)) {
+                db.flights[flightIdx].id = generateUUID();
+            }
         }
     } else {
         const newFlight = {
@@ -3246,6 +3223,9 @@ function handleSensitiveSubmit(e) {
             db.sensible[itemIdx].content = content;
             db.sensible[itemIdx].category = category;
             db.sensible[itemIdx].updated_at = new Date().toISOString();
+            if (!isValidUUID(db.sensible[itemIdx].id)) {
+                db.sensible[itemIdx].id = generateUUID();
+            }
         }
     } else {
         const newItem = {
