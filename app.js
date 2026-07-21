@@ -2370,7 +2370,7 @@ async function handleExpenseSubmit(e) {
                 date: date,
                 notes: notes,
                 split_group_id: finalGroupId,
-                debtor_name: sDebtor || null,
+                debtor_name: sDebtor === "Otros" ? "Otros" : null,
                 updated_at: new Date().toISOString()
             };
             db.expenses.push(newSubExpense);
@@ -2473,8 +2473,8 @@ function addSplitRow(title = "", amount = "", category = "", debtor = "") {
     const debtors = ["Familia", "Otros"];
     let debtorOptions = "";
     debtors.forEach(d => {
-        const val = d === "Familia" ? "" : d;
-        const selected = val === debtor ? "selected" : "";
+        const val = d;
+        const selected = val === (debtor || "Familia") ? "selected" : "";
         debtorOptions += `<option value="${val}" ${selected}>${d === "Familia" ? "👥 Familia" : "👤 " + d}</option>`;
     });
     
