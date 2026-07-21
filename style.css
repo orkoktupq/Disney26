@@ -352,6 +352,7 @@ body {
 .sync-dot.green { background-color: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
 .sync-dot.orange { background-color: var(--warning-color); box-shadow: 0 0 6px var(--warning-color); }
 .sync-dot.red { background-color: var(--danger-color); box-shadow: 0 0 6px var(--danger-color); }
+.sync-dot.yellow { background-color: #f1c40f; box-shadow: 0 0 6px #f1c40f; }
 
 .btn-header-logout {
     background: none;
