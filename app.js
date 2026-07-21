@@ -3343,9 +3343,18 @@ async function runSupabaseSync() {
                 
                 if (rowsToUpsert.length > 0) {
                     try {
+                        const options = {};
+                        if (localKey === "itinerary") {
+                            options.onConflict = "date";
+                        } else if (localKey === "expense_categories") {
+                            options.onConflict = "name";
+                        } else if (localKey === "payment_methods") {
+                            options.onConflict = "name";
+                        }
+
                         const { error } = await supabaseClient
                             .from(supabaseTable)
-                            .upsert(rowsToUpsert);
+                            .upsert(rowsToUpsert, options);
                         if (error) {
                             console.warn(`Upsert error en ${supabaseTable}:`, error.message);
                             tableHasUploadError = true;
