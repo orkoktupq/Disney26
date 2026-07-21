@@ -30,8 +30,8 @@ const DEFAULT_ITINERARY = [
     { id: "i1", date: "2026-07-17", title: "Parque de Agua - Disney Typhoon Lagoon", notes: "Día de parque acuático en Disney Typhoon Lagoon. Disfrutar de la pileta de olas gigantes, toboganes y el río lento.", is_park_day: true, park_name: "Typhoon Lagoon", updated_at: "2026-07-14T08:00:00Z" },
     { id: "i2", date: "2026-07-18", title: "Epcot", notes: "Visita a Epcot. Cosmic Rewind es prioridad (Virtual Queue a las 7:00 AM o Lightning Lane Single Pass). Pasear por los pabellones de World Showcase en la tarde.", is_park_day: true, park_name: "Epcot", updated_at: "2026-07-14T08:00:00Z" },
     { id: "i3", date: "2026-07-19", title: "Día de Descanso", notes: "Día libre de descanso, piscina en el hotel o paseos cortos.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i4", date: "2026-07-20", title: "Disney's Animal Kingdom", notes: "Entrar temprano para Avatar Flight of Passage. Expedition Everest y el safari Kilimanjaro Safaris en la mañana para ver los animales activos.", is_park_day: true, park_name: "Animal Kingdom", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "i5", date: "2026-07-21", title: "Disney's Hollywood Studios", notes: "Mundo Star Wars (Galaxy's Edge) a primera hora. Rise of the Resistance y Slinky Dog Dash son las prioridades del día.", is_park_day: true, park_name: "Hollywood Studios", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i4", date: "2026-07-20", title: "Disney's Animal Kingdom", notes: "{\"general_notes\":\"Atracciones: Avatar Flight of Passage, Na'vi River Journey, Kilimanjaro Safaris, Gorilla Falls Exploration Trail, Kali River Rapids, Expedition Everest, Zootopia.\",\"activities\":[{\"id\":\"act-bus-ak\",\"time\":\"07:30\",\"title\":\"Ir en bus del hotel al parque 🚌\",\"is_completed\":false}]}", is_park_day: true, park_name: "Animal Kingdom", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "i5", date: "2026-07-21", title: "Disney's Hollywood Studios", notes: "{\"general_notes\":\"Atracciones: Star Wars: Rise of the Resistance, Millennium Falcon, Star Tours - The Adventure Continues, Indiana Jones, Alien Swirling Saucers, Slinky Dog Dash, Toy Story Mania, Meet Edna Mode, The Twilight Zone, Rock 'n' Roller Coaster.\",\"activities\":[{\"id\":\"act-sky-hs\",\"time\":\"08:00\",\"title\":\"Ir en Skyliner al parque 🚡\",\"is_completed\":false}]}", is_park_day: true, park_name: "Hollywood Studios", updated_at: "2026-07-14T08:00:00Z" },
     { id: "i6", date: "2026-07-22", title: "Magic Kingdom", notes: "Llegar temprano para el Rope Drop. Reservar TRON y Tiana en Virtual Queue/Lightning Lane a las 7:00 AM.", is_park_day: true, park_name: "Magic Kingdom", updated_at: "2026-07-14T08:00:00Z" },
     { id: "i7", date: "2026-07-23", title: "Día de Descanso", notes: "Día para reponer energías tras los parques intensos de Disney.", is_park_day: false, park_name: "", updated_at: "2026-07-14T08:00:00Z" },
     { id: "i8", date: "2026-07-24", title: "Universal Studios Florida", notes: "Visita a Universal Studios. Diagon Alley (Gringotts), Revenge of the Mummy y Men in Black. Almorzar en el Caldero Chorreante.", is_park_day: true, park_name: "Universal Studios", updated_at: "2026-07-14T08:00:00Z" },
@@ -67,10 +67,14 @@ const DEFAULT_ATTRACTIONS = [
     // Hollywood Studios
     { id: "a17", park: "Hollywood Studios", name: "Star Wars: Rise of the Resistance", land: "Galaxy's Edge", date: "2026-07-21", is_completed: false, visit_order: 1, notes: "Atracción super inmersiva. Si falla temprano, intentar a la hora del almuerzo.", updated_at: "2026-07-14T08:00:00Z" },
     { id: "a18", park: "Hollywood Studios", name: "Millennium Falcon: Smugglers Run", land: "Galaxy's Edge", date: "2026-07-21", is_completed: false, visit_order: 2, notes: "Juanma piloto, Sofi ingeniera. Divertida interactiva.", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "a19", park: "Hollywood Studios", name: "Slinky Dog Dash", land: "Toy Story Land", date: "2026-07-21", is_completed: false, visit_order: 3, notes: "Montaña rusa familiar pero muy divertida. Fila siempre de más de 60 min.", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "a20", park: "Hollywood Studios", name: "Toy Story Mania!", land: "Toy Story Land", date: "2026-07-21", is_completed: false, visit_order: 4, notes: "Juego de puntería 3D adictivo.", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "a21", park: "Hollywood Studios", name: "Tower of Terror", land: "Sunset Boulevard", date: "2026-07-21", is_completed: false, visit_order: 5, notes: "Caídas libres aleatorias. Estética de hotel abandonado espectacular.", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "a22", park: "Hollywood Studios", name: "Rock 'n' Roller Coaster Starring Aerosmith", land: "Sunset Boulevard", date: "2026-07-21", is_completed: false, visit_order: 6, notes: "Salida a toda velocidad a oscuras con música de Aerosmith.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a19_1", park: "Hollywood Studios", name: "Star Tours - The Adventure Continues", land: "Echo Lake", date: "2026-07-21", is_completed: false, visit_order: 3, notes: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a19_2", park: "Hollywood Studios", name: "Indiana Jones Epic Stunt Spectacular", land: "Echo Lake", date: "2026-07-21", is_completed: false, visit_order: 4, notes: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a19_3", park: "Hollywood Studios", name: "Alien Swirling Saucers", land: "Toy Story Land", date: "2026-07-21", is_completed: false, visit_order: 5, notes: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a19", park: "Hollywood Studios", name: "Slinky Dog Dash", land: "Toy Story Land", date: "2026-07-21", is_completed: false, visit_order: 6, notes: "Montaña rusa familiar pero muy divertida. Fila siempre de más de 60 min.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a20", park: "Hollywood Studios", name: "Toy Story Mania!", land: "Toy Story Land", date: "2026-07-21", is_completed: false, visit_order: 7, notes: "Juego de puntería 3D adictivo.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a20_1", park: "Hollywood Studios", name: "Meet Edna Mode", land: "Pixar Place", date: "2026-07-21", is_completed: false, visit_order: 8, notes: "", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a21", park: "Hollywood Studios", name: "The Twilight Zone Tower of Terror", land: "Sunset Boulevard", date: "2026-07-21", is_completed: false, visit_order: 9, notes: "Caídas libres aleatorias. Estética de hotel abandonado espectacular.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a22", park: "Hollywood Studios", name: "Rock 'n' Roller Coaster Starring Aerosmith", land: "Sunset Boulevard", date: "2026-07-21", is_completed: false, visit_order: 10, notes: "Salida a toda velocidad a oscuras con música de Aerosmith.", updated_at: "2026-07-14T08:00:00Z" },
     // Islands of Adventure
     { id: "a23", park: "Islands of Adventure", name: "VelociCoaster", land: "Jurassic Park", date: "2026-07-23", is_completed: false, visit_order: 1, notes: "Impresionante montaña rusa de lanzamiento. Fila obligatoria pero avanza rápido.", updated_at: "2026-07-14T08:00:00Z" },
     { id: "a24", park: "Islands of Adventure", name: "Hagrid's Magical Creatures Motorbike Adventure", land: "Hogsmeade", date: "2026-07-23", is_completed: false, visit_order: 2, notes: "Prioridad N°1 en Islands. No acepta Express Pass normal. Rope Drop indispensable.", updated_at: "2026-07-14T08:00:00Z" },
@@ -78,11 +82,11 @@ const DEFAULT_ATTRACTIONS = [
     { id: "a26", park: "Islands of Adventure", name: "The Amazing Adventures of Spider-Man", land: "Marvel Super Hero Island", date: "2026-07-23", is_completed: false, visit_order: 4, notes: "Simulador de juego clásico en 3D espectacular.", updated_at: "2026-07-14T08:00:00Z" },
     { id: "a27", park: "Islands of Adventure", name: "The Incredible Hulk Coaster", land: "Marvel Super Hero Island", date: "2026-07-23", is_completed: false, visit_order: 5, notes: "Lanzamiento inicial potente, giros de alta velocidad.", updated_at: "2026-07-14T08:00:00Z" },
     // Universal Studios
-    { id: "a28", park: "Universal Studios", name: "Harry Potter and the Escape from Gringotts", land: "Diagon Alley", date: "2026-07-20", is_completed: false, visit_order: 1, notes: "Híbrido montaña rusa y simulador dentro del banco de Gringotts. Increíble.", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "a29", park: "Universal Studios", name: "Revenge of the Mummy", land: "New York", date: "2026-07-20", is_completed: false, visit_order: 2, notes: "Montaña rusa bajo techo. Muy divertida y con excelente ambientación.", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "a30", park: "Universal Studios", name: "Men in Black: Alien Attack", land: "World Expo", date: "2026-07-20", is_completed: false, visit_order: 3, notes: "Juego de disparar a alienígenas. Quien pierda paga los donuts de Lard Lad.", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "a31", park: "Universal Studios", name: "The Simpsons Ride", land: "Springfield", date: "2026-07-20", is_completed: false, visit_order: 4, notes: "Simulador muy divertido con el humor clásico de la serie.", updated_at: "2026-07-14T08:00:00Z" },
-    { id: "a32", park: "Universal Studios", name: "Despicable Me Minion Mayhem", land: "Minion Land", date: "2026-07-20", is_completed: false, visit_order: 5, notes: "Atracción muy tierna para reír un rato.", updated_at: "2026-07-14T08:00:00Z" }
+    { id: "a28", park: "Universal Studios", name: "Harry Potter and the Escape from Gringotts", land: "Diagon Alley", date: "2026-07-24", is_completed: false, visit_order: 1, notes: "Híbrido montaña rusa y simulador dentro del banco de Gringotts. Increíble.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a29", park: "Universal Studios", name: "Revenge of the Mummy", land: "New York", date: "2026-07-24", is_completed: false, visit_order: 2, notes: "Montaña rusa bajo techo. Muy divertida y con excelente ambientación.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a30", park: "Universal Studios", name: "Men in Black: Alien Attack", land: "World Expo", date: "2026-07-24", is_completed: false, visit_order: 3, notes: "Juego de disparar a alienígenas. Quien pierda paga los donuts de Lard Lad.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a31", park: "Universal Studios", name: "The Simpsons Ride", land: "Springfield", date: "2026-07-24", is_completed: false, visit_order: 4, notes: "Simulador muy divertido con el humor clásico de la serie.", updated_at: "2026-07-14T08:00:00Z" },
+    { id: "a32", park: "Universal Studios", name: "Despicable Me Minion Mayhem", land: "Minion Land", date: "2026-07-24", is_completed: false, visit_order: 5, notes: "Atracción muy tierna para reír un rato.", updated_at: "2026-07-14T08:00:00Z" }
 ];
 
 const DEFAULT_FLIGHTS = [
@@ -156,19 +160,23 @@ const PARK_PRESETS = {
     "Hollywood Studios": [
         { name: "Star Wars: Rise of the Resistance", land: "Galaxy's Edge" },
         { name: "Millennium Falcon: Smugglers Run", land: "Galaxy's Edge" },
+        { name: "Star Tours - The Adventure Continues", land: "Echo Lake" },
+        { name: "Indiana Jones Epic Stunt Spectacular", land: "Echo Lake" },
+        { name: "Alien Swirling Saucers", land: "Toy Story Land" },
         { name: "Slinky Dog Dash", land: "Toy Story Land" },
         { name: "Toy Story Mania!", land: "Toy Story Land" },
-        { name: "Tower of Terror", land: "Sunset Boulevard" },
-        { name: "Rock 'n' Roller Coaster Starring Aerosmith", land: "Sunset Boulevard" },
-        { name: "Mickey & Minnie's Runaway Railway", land: "Hollywood Boulevard" }
+        { name: "Meet Edna Mode", land: "Pixar Place" },
+        { name: "The Twilight Zone Tower of Terror", land: "Sunset Boulevard" },
+        { name: "Rock 'n' Roller Coaster Starring Aerosmith", land: "Sunset Boulevard" }
     ],
     "Animal Kingdom": [
         { name: "Avatar Flight of Passage", land: "Pandora" },
         { name: "Na'vi River Journey", land: "Pandora" },
-        { name: "Expedition Everest", land: "Asia" },
-        { name: "Kali River Rapids", land: "Asia" },
         { name: "Kilimanjaro Safaris", land: "Africa" },
-        { name: "DINOSAUR", land: "DinoLand U.S.A." }
+        { name: "Gorilla Falls Exploration Trail", land: "Africa" },
+        { name: "Kali River Rapids", land: "Asia" },
+        { name: "Expedition Everest", land: "Asia" },
+        { name: "Zootopia", land: "Zootopia" }
     ],
     "Universal Studios": [
         { name: "Harry Potter and the Escape from Gringotts", land: "Diagon Alley" },
@@ -607,6 +615,131 @@ function initLocalDB() {
         console.log(`Deduplicación de itinerario: ${db.itinerary.length} → ${dedupedItinerary.length} items`);
         db.itinerary = dedupedItinerary;
         localStorage.setItem("disney2026_itinerary", JSON.stringify(db.itinerary));
+    }
+
+    // Migración específica para el itinerario y atracciones del 20/07/2026 (Animal Kingdom)
+    const july20MigrationKey = "disney2026_july20_update_v2";
+    if (!localStorage.getItem(july20MigrationKey)) {
+        console.log("Migrando itinerario y atracciones del 20/07/2026...");
+        
+        // 1. Modificar día en itinerario
+        const day20 = db.itinerary.find(item => item.date === "2026-07-20");
+        if (day20) {
+            day20.title = "Disney's Animal Kingdom";
+            day20.park_name = "Animal Kingdom";
+            day20.is_park_day = true;
+            day20.notes = JSON.stringify({
+                general_notes: "Atracciones: Avatar Flight of Passage, Na'vi River Journey, Kilimanjaro Safaris, Gorilla Falls Exploration Trail, Kali River Rapids, Expedition Everest, Zootopia.",
+                activities: [
+                    { id: generateUUID(), time: "07:30", title: "Ir en bus del hotel al parque 🚌", is_completed: false }
+                ]
+            });
+            day20.updated_at = new Date().toISOString();
+        }
+        
+        // 2. Modificar atracciones
+        // Eliminar atracciones previas en 20/07/2026 para reordenar/actualizar
+        db.attractions = db.attractions.filter(att => att.date !== "2026-07-20");
+        
+        const newAtts = [
+            { name: "Avatar Flight of Passage", land: "Pandora" },
+            { name: "Na'vi River Journey", land: "Pandora" },
+            { name: "Kilimanjaro Safaris", land: "Africa" },
+            { name: "Gorilla Falls Exploration Trail", land: "Africa" },
+            { name: "Kali River Rapids", land: "Asia" },
+            { name: "Expedition Everest", land: "Asia" },
+            { name: "Zootopia", land: "Zootopia" }
+        ];
+        
+        newAtts.forEach((att, idx) => {
+            db.attractions.push({
+                id: generateUUID(),
+                park: "Animal Kingdom",
+                name: att.name,
+                land: att.land,
+                date: "2026-07-20",
+                is_completed: false,
+                visit_order: idx + 1,
+                notes: "",
+                updated_at: new Date().toISOString()
+            });
+        });
+        
+        localStorage.setItem("disney2026_itinerary", JSON.stringify(db.itinerary));
+        localStorage.setItem("disney2026_attractions", JSON.stringify(db.attractions));
+        
+        db.dirty.itinerary = true;
+        db.dirty.attractions = true;
+        localStorage.setItem("disney2026_dirty", JSON.stringify(db.dirty));
+        
+        localStorage.setItem(july20MigrationKey, "true");
+        if (supabaseClient) {
+            triggerBackgroundSync();
+        }
+    }
+
+    // Migración específica para el itinerario y atracciones del 21/07/2026 (Hollywood Studios)
+    const july21MigrationKey = "disney2026_july21_update_v1";
+    if (!localStorage.getItem(july21MigrationKey)) {
+        console.log("Migrando itinerario y atracciones del 21/07/2026...");
+        
+        // 1. Modificar día en itinerario
+        const day21 = db.itinerary.find(item => item.date === "2026-07-21");
+        if (day21) {
+            day21.title = "Disney's Hollywood Studios";
+            day21.park_name = "Hollywood Studios";
+            day21.is_park_day = true;
+            day21.notes = JSON.stringify({
+                general_notes: "Atracciones: Star Wars: Rise of the Resistance, Millennium Falcon, Star Tours - The Adventure Continues, Indiana Jones, Alien Swirling Saucers, Slinky Dog Dash, Toy Story Mania, Meet Edna Mode, The Twilight Zone, Rock 'n' Roller Coaster.",
+                activities: [
+                    { id: generateUUID(), time: "08:00", title: "Ir en Skyliner al parque 🚡", is_completed: false }
+                ]
+            });
+            day21.updated_at = new Date().toISOString();
+        }
+        
+        // 2. Modificar atracciones
+        // Eliminar atracciones previas en 21/07/2026 para reordenar/actualizar
+        db.attractions = db.attractions.filter(att => att.date !== "2026-07-21");
+        
+        const newAtts21 = [
+            { name: "Star Wars: Rise of the Resistance", land: "Galaxy's Edge" },
+            { name: "Millennium Falcon: Smugglers Run", land: "Galaxy's Edge" },
+            { name: "Star Tours - The Adventure Continues", land: "Echo Lake" },
+            { name: "Indiana Jones Epic Stunt Spectacular", land: "Echo Lake" },
+            { name: "Alien Swirling Saucers", land: "Toy Story Land" },
+            { name: "Slinky Dog Dash", land: "Toy Story Land" },
+            { name: "Toy Story Mania!", land: "Toy Story Land" },
+            { name: "Meet Edna Mode", land: "Pixar Place" },
+            { name: "The Twilight Zone Tower of Terror", land: "Sunset Boulevard" },
+            { name: "Rock 'n' Roller Coaster Starring Aerosmith", land: "Sunset Boulevard" }
+        ];
+        
+        newAtts21.forEach((att, idx) => {
+            db.attractions.push({
+                id: generateUUID(),
+                park: "Hollywood Studios",
+                name: att.name,
+                land: att.land,
+                date: "2026-07-21",
+                is_completed: false,
+                visit_order: idx + 1,
+                notes: "",
+                updated_at: new Date().toISOString()
+            });
+        });
+        
+        localStorage.setItem("disney2026_itinerary", JSON.stringify(db.itinerary));
+        localStorage.setItem("disney2026_attractions", JSON.stringify(db.attractions));
+        
+        db.dirty.itinerary = true;
+        db.dirty.attractions = true;
+        localStorage.setItem("disney2026_dirty", JSON.stringify(db.dirty));
+        
+        localStorage.setItem(july21MigrationKey, "true");
+        if (supabaseClient) {
+            triggerBackgroundSync();
+        }
     }
 }
 
