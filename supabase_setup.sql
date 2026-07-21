@@ -206,3 +206,16 @@ CREATE TABLE IF NOT EXISTS shopping_items (
 -- Si ya creaste las tablas en Supabase anteriormente, ejecuta estas líneas en tu editor SQL:
 -- ALTER TABLE trip_expenses ADD COLUMN IF NOT EXISTS split_group_id UUID;
 -- ALTER TABLE trip_expenses ADD COLUMN IF NOT EXISTS debtor_name VARCHAR(100);
+
+-- IMPORTANTE: DESACTIVAR RLS (Row Level Security) EN TODAS LAS TABLAS
+-- Supabase activa RLS por defecto en nuevos proyectos. Si RLS está activo y no hay políticas creadas,
+-- las consultas de lectura devolverán una lista vacía y las escrituras fallarán silenciosamente.
+-- Ejecuta estas líneas en tu editor SQL para permitir la sincronización correcta entre dispositivos:
+ALTER TABLE itinerary_items DISABLE ROW LEVEL SECURITY;
+ALTER TABLE attraction_checklist DISABLE ROW LEVEL SECURITY;
+ALTER TABLE sensitive_details DISABLE ROW LEVEL SECURITY;
+ALTER TABLE flight_itinerary DISABLE ROW LEVEL SECURITY;
+ALTER TABLE trip_expenses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE expense_categories DISABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_methods DISABLE ROW LEVEL SECURITY;
+ALTER TABLE shopping_items DISABLE ROW LEVEL SECURITY;
