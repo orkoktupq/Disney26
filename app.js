@@ -741,6 +741,22 @@ function initLocalDB() {
             triggerBackgroundSync();
         }
     }
+
+    // Deduplicar atracciones: mantener solo la versión más reciente por nombre y fecha
+    const attractionUnique = {};
+    db.attractions.forEach(item => {
+        const key = `${item.date || ""}_${item.name}`;
+        const existing = attractionUnique[key];
+        if (!existing || new Date(item.updated_at || 0) > new Date(existing.updated_at || 0)) {
+            attractionUnique[key] = item;
+        }
+    });
+    const dedupedAttractions = Object.values(attractionUnique);
+    if (dedupedAttractions.length < db.attractions.length) {
+        console.log(`Deduplicación de atracciones: ${db.attractions.length} → ${dedupedAttractions.length} items`);
+        db.attractions = dedupedAttractions;
+        localStorage.setItem("disney2026_attractions", JSON.stringify(db.attractions));
+    }
 }
 
 // Formateador de moneda USD con formato argentino: USD XXX.XXX.XXX,XX
@@ -3475,13 +3491,21 @@ async function runSupabaseSync() {
                             }
                         });
                         const deduped = Object.values(byDate);
-                        if (deduped.length < merged.length) {
-                            db[localKey] = deduped;
-                            localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(deduped));
-                        } else {
-                            db[localKey] = merged;
-                            localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(merged));
-                        }
+                        db[localKey] = deduped;
+                        localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(deduped));
+                    } else if (localKey === "attractions") {
+                        // Deduplicar atracciones post-merge (mantener solo una por nombre en la misma fecha)
+                        const byNameAndDate = {};
+                        merged.forEach(item => {
+                            const key = `${item.date || ""}_${item.name}`;
+                            const ex = byNameAndDate[key];
+                            if (!ex || new Date(item.updated_at || 0) > new Date(ex.updated_at || 0)) {
+                                byNameAndDate[key] = item;
+                            }
+                        });
+                        const deduped = Object.values(byNameAndDate);
+                        db[localKey] = deduped;
+                        localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(deduped));
                     } else {
                         db[localKey] = merged;
                         localStorage.setItem(`disney2026_${localKey}`, JSON.stringify(merged));
