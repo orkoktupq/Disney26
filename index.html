@@ -147,17 +147,6 @@
                             <!-- Generado dinámicamente por updateGastosSummary() -->
                         </div>
                     </div>
-
-                    <!-- Panel Cuentas Claras (Saldos a devolver) -->
-                    <div class="cuentas-claras-card" id="cuentas-claras-card" style="display: none;">
-                        <div class="cuentas-claras-header">
-                            <h3>👤 Cuentas Claras (Saldos)</h3>
-                        </div>
-                        <div class="cuentas-claras-list" id="cuentas-claras-list">
-                            <!-- Generado dinámicamente -->
-                        </div>
-                    </div>
-
                     <!-- Botones de Acción de Gastos -->
                     <div class="gastos-action-bar flex-row">
                         <button class="apple-btn-primary flex-1" id="btn-add-expense-modal">
@@ -767,44 +756,6 @@
             </div>
         </form>
     </dialog>
-
-    <!-- MODAL DE DIÁLOGO: COBRAR / LIQUIDAR DEUDA -->
-    <dialog id="modal-settle-debt" class="apple-dialog">
-        <div class="dialog-header">
-            <h2>Registrar Cobro de Deuda</h2>
-            <button class="btn-close-dialog" commandfor="modal-settle-debt" command="close">✕</button>
-        </div>
-        <form id="form-settle-debt" method="dialog" class="dialog-form">
-            <input type="hidden" id="settle-debt-person">
-            
-            <div class="form-group">
-                <label id="settle-debt-label" for="settle-debt-amount">Monto a Cobrar (USD)</label>
-                <input type="number" id="settle-debt-amount" class="apple-input" placeholder="0.00" step="0.01" min="0.01" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="settle-debt-payment-method">Medio en que recibes el pago</label>
-                <select id="settle-debt-payment-method" class="apple-select" required>
-                    <!-- Cargados dinámicamente -->
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="settle-debt-date">Fecha de Cobro</label>
-                <input type="date" id="settle-debt-date" class="apple-input" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="settle-debt-notes">Notas (Opcional)</label>
-                <input type="text" id="settle-debt-notes" class="apple-input" value="Devolución de dinero prestado">
-            </div>
-            
-            <div class="form-actions">
-                <button type="submit" class="apple-btn-primary">Registrar Cobro</button>
-            </div>
-        </form>
-    </dialog>
-
     <!-- MODAL DE DIÁLOGO: VUELOS -->
     <dialog id="modal-flight" class="apple-dialog">
         <div class="dialog-header">
