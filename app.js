@@ -757,6 +757,43 @@ function initLocalDB() {
         db.attractions = dedupedAttractions;
         localStorage.setItem("disney2026_attractions", JSON.stringify(db.attractions));
     }
+
+    // Migración para convertir cualquier ID no-UUID a UUID válido
+    let idMigrationChanged = false;
+    const tablesToMigrate = ["itinerary", "attractions", "flights", "sensible", "expenses", "expense_categories", "payment_methods", "compras"];
+    
+    tablesToMigrate.forEach(tableKey => {
+        let tableChanged = false;
+        db[tableKey].forEach(item => {
+            if (!isValidUUID(item.id)) {
+                item.id = generateUUID();
+                item.updated_at = new Date().toISOString();
+                idMigrationChanged = true;
+                tableChanged = true;
+            }
+        });
+        if (tableChanged) {
+            localStorage.setItem(`disney2026_${tableKey}`, JSON.stringify(db[tableKey]));
+            db.dirty[tableKey] = true;
+        }
+    });
+    
+    // Forzar sincronización completa una vez para asegurar que todo lo local suba a Supabase
+    const forceSyncKey = "disney2026_force_sync_v3";
+    if (!localStorage.getItem(forceSyncKey)) {
+        tablesToMigrate.forEach(k => {
+            db.dirty[k] = true;
+        });
+        idMigrationChanged = true;
+        localStorage.setItem(forceSyncKey, "true");
+    }
+
+    if (idMigrationChanged) {
+        localStorage.setItem("disney2026_dirty", JSON.stringify(db.dirty));
+        if (supabaseClient) {
+            triggerBackgroundSync();
+        }
+    }
 }
 
 // Formateador de moneda USD con formato argentino: USD XXX.XXX.XXX,XX
@@ -787,6 +824,10 @@ function generateUUID() {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
+}
+
+function isValidUUID(id) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }
 
 // --- CONFIGURACIÓN DE EVENT LISTENERS ---
@@ -3292,9 +3333,7 @@ async function runSupabaseSync() {
         compras: "shopping_items"
     };
     
-    // Función para validar si un ID es UUID válido
-    const isValidUUID = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    
+
     try {
         for (const [localKey, supabaseTable] of Object.entries(tablesMap)) {
             // 1. Si hay cambios locales "sucios" (dirty), subir solo los que tengan UUID válido
