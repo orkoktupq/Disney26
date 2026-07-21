@@ -326,6 +326,8 @@ function saveCustomCategoriesOrder() {
     saveCustomCategories();
 }
 
+let lastSyncErrors = [];
+
 let db = {
     itinerary: [],
     attractions: [],
@@ -810,6 +812,22 @@ function setupEventListeners() {
     const logoutBtn = document.getElementById("btn-logout");
     if (logoutBtn) {
         logoutBtn.addEventListener("click", handleLogout);
+    }
+
+    // Diagnósticos de sincronización al hacer clic en el indicador de estado (útil en móviles)
+    const syncIndicator = document.getElementById("sync-indicator");
+    if (syncIndicator) {
+        syncIndicator.addEventListener("click", () => {
+            if (lastSyncErrors.length > 0) {
+                alert("Errores de sincronización detectados:\n\n" + lastSyncErrors.join("\n\n") + "\n\n(Revisa si aplicaste el script SQL en Supabase para desactivar RLS)");
+            } else {
+                const dot = syncIndicator.querySelector(".sync-dot");
+                let statusText = "Sincronización correcta.";
+                if (dot.classList.contains("orange")) statusText = "Sincronizando...";
+                if (dot.classList.contains("red")) statusText = "Modo offline o error crítico de conexión.";
+                alert("Estado de sincronización:\n" + statusText);
+            }
+        });
     }
 
     // 2. Navegación por Pestañas
@@ -3301,6 +3319,7 @@ async function runSupabaseSync() {
     
     updateSyncIndicator("orange");
     let hasSyncErrors = false;
+    lastSyncErrors = [];
     
     const tablesMap = {
         itinerary: "itinerary_items",
@@ -3331,11 +3350,13 @@ async function runSupabaseSync() {
                             console.warn(`Upsert error en ${supabaseTable}:`, error.message);
                             tableHasUploadError = true;
                             hasSyncErrors = true;
+                            lastSyncErrors.push(`Subida falló en ${supabaseTable}: ${error.message}`);
                         }
                     } catch (e) {
                         console.warn(`Error al subir datos a ${supabaseTable}:`, e);
                         tableHasUploadError = true;
                         hasSyncErrors = true;
+                        lastSyncErrors.push(`Subida falló en ${supabaseTable}: ${e.message || e}`);
                     }
                 }
                 
@@ -3353,23 +3374,31 @@ async function runSupabaseSync() {
                     
                 if (error) throw error;
                 
-                if (cloudData && cloudData.length > 0) {
-                    // Filtrar datos locales: quedarse solo con los que tienen UUID válido
-                    const validLocalData = db[localKey].filter(item => isValidUUID(item.id));
-                    const merged = [...validLocalData];
+                if (cloudData) {
+                    // Filtrar datos locales:
+                    // 1. Mantener los de ID heredado/no-UUID (se quedan locales para demo/iniciales).
+                    // 2. Mantener los de ID UUID válido SOLO si existen en la nube, o si la tabla todavía tiene cambios pendientes de subir (dirty).
+                    // Esto elimina automáticamente en local cualquier dato limpio que haya sido borrado de la nube.
+                    const merged = [];
+                    db[localKey].forEach(localRow => {
+                        const inCloud = cloudData.some(c => c.id === localRow.id);
+                        const isLegacyId = !isValidUUID(localRow.id);
+                        const isPendingUpload = db.dirty[localKey];
+                        
+                        if (inCloud || isLegacyId || isPendingUpload) {
+                            merged.push(localRow);
+                        }
+                    });
                     
+                    // Mezclar/Actualizar con los datos de la nube
                     cloudData.forEach(cloudRow => {
                         const localIdx = merged.findIndex(l => l.id === cloudRow.id);
                         if (localIdx === -1) {
-                            // Elemento no existe localmente, agregar
                             merged.push(cloudRow);
                         } else {
-                            // Comparar marcas de tiempo
                             const localTime = new Date(merged[localIdx].updated_at || 0).getTime();
                             const cloudTime = new Date(cloudRow.updated_at || 0).getTime();
-                            
                             if (cloudTime > localTime) {
-                                // Reemplazar local por nube si la nube es más nueva
                                 merged[localIdx] = cloudRow;
                             }
                         }
@@ -3408,6 +3437,7 @@ async function runSupabaseSync() {
             } catch (tableErr) {
                 console.warn(`Error al sincronizar la tabla ${supabaseTable}:`, tableErr.message || tableErr);
                 hasSyncErrors = true;
+                lastSyncErrors.push(`Lectura falló en ${supabaseTable}: ${tableErr.message || tableErr}`);
                 // No propagamos para que el resto de las tablas válidas sí se sincronicen
             }
         }
@@ -3422,6 +3452,7 @@ async function runSupabaseSync() {
     } catch (e) {
         console.error("Fallo durante sincronización de Supabase:", e);
         updateSyncIndicator("red");
+        lastSyncErrors.push(`Error crítico: ${e.message || e}`);
         throw e;
     }
 }
