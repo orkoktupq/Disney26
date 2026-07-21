@@ -849,7 +849,6 @@ function setupEventListeners() {
     document.getElementById("form-attraction").addEventListener("submit", handleAttractionSubmit);
     document.getElementById("form-expense").addEventListener("submit", handleExpenseSubmit);
     document.getElementById("form-pay-room").addEventListener("submit", handlePayRoomSubmit);
-    document.getElementById("form-settle-debt").addEventListener("submit", handleSettleDebtSubmit);
     document.getElementById("form-add-expense-category").addEventListener("submit", handleCategorySubmit);
     document.getElementById("form-add-payment-method").addEventListener("submit", handlePaymentMethodSubmit);
     document.getElementById("form-flight").addEventListener("submit", handleFlightSubmit);
@@ -2111,7 +2110,7 @@ function updateGastosSummary() {
     sortedMethods.forEach((methodName, i) => {
         const amt = perMethod[methodName];
         const pmObj = db.payment_methods.find(p => p.name === methodName);
-        const emoji = pmObj ? pmObj.emoji : "💳";
+        const emoji = methodName === "Otros" ? "👥" : (pmObj ? pmObj.emoji : "💳");
         const dotColor = dotColors[i % dotColors.length];
         
         const item = document.createElement("div");
@@ -2123,9 +2122,6 @@ function updateGastosSummary() {
         `;
         breakdownEl.appendChild(item);
     });
-    
-    // Actualizar el panel de deudas/saldos de personas
-    updateCuentasClaras();
 }
 
 function handlePayRoomSubmit(e) {
@@ -2267,11 +2263,18 @@ function openEditExpenseModal(id) {
     document.getElementById("expense-title").value = expense.title;
     document.getElementById("expense-date").value = expense.date;
     loadExpenseDropdowns();
-    document.getElementById("expense-payment-method").value = expense.payment_method;
     document.getElementById("expense-notes").value = expense.notes || "";
     
     const isSplit = !!expense.split_group_id;
     document.getElementById("expense-is-split").checked = isSplit;
+    
+    if (isSplit) {
+        const groupExpenses = db.expenses.filter(e => e.split_group_id === expense.split_group_id);
+        const mainPmObj = groupExpenses.find(e => e.payment_method !== "Otros") || groupExpenses[0];
+        document.getElementById("expense-payment-method").value = mainPmObj ? mainPmObj.payment_method : "Efectivo";
+    } else {
+        document.getElementById("expense-payment-method").value = expense.payment_method;
+    }
     
     const section = document.getElementById("expense-splits-section");
     const amountInput = document.getElementById("expense-amount");
@@ -2357,16 +2360,17 @@ async function handleExpenseSubmit(e) {
             const sCategory = row.querySelector(".split-category").value;
             const sDebtor = row.querySelector(".split-debtor").value || null;
             
+            const finalPaymentMethod = sDebtor === "Otros" ? "Otros" : payment_method;
             const newSubExpense = {
                 id: generateUUID(),
                 title: sTitle,
                 amount: sAmount,
                 category: sCategory,
-                payment_method: payment_method,
+                payment_method: finalPaymentMethod,
                 date: date,
                 notes: notes,
                 split_group_id: finalGroupId,
-                debtor_name: sDebtor,
+                debtor_name: sDebtor || null,
                 updated_at: new Date().toISOString()
             };
             db.expenses.push(newSubExpense);
@@ -2465,13 +2469,13 @@ function addSplitRow(title = "", amount = "", category = "", debtor = "") {
         catOptions += `<option value="${c.name}" ${selected}>${c.emoji} ${c.name}</option>`;
     });
     
-    // Crear select de deudores (solo terceros de quienes recibir devoluciones)
-    const debtors = ["Familia / Nosotros", "Agus", "Cata"];
+    // Crear select de deudores (Familia o Otros)
+    const debtors = ["Familia", "Otros"];
     let debtorOptions = "";
     debtors.forEach(d => {
-        const val = d === "Familia / Nosotros" ? "" : d;
+        const val = d === "Familia" ? "" : d;
         const selected = val === debtor ? "selected" : "";
-        debtorOptions += `<option value="${val}" ${selected}>${d === "Familia / Nosotros" ? "👥 Familia / Nosotros" : "👤 " + d}</option>`;
+        debtorOptions += `<option value="${val}" ${selected}>${d === "Familia" ? "👥 Familia" : "👤 " + d}</option>`;
     });
     
     row.innerHTML = `
@@ -2512,142 +2516,6 @@ function calculateSplitTotal() {
     document.getElementById("expense-amount").value = total > 0 ? total.toFixed(2) : "";
 }
 
-// --- UTILERÍAS DE COBRO / LIQUIDACIÓN DE CUENTAS CLARAS ---
-function openSettleDebtModal(person, balance) {
-    document.getElementById("form-settle-debt").reset();
-    document.getElementById("settle-debt-person").value = person;
-    
-    const label = document.getElementById("settle-debt-label");
-    if (label) label.textContent = `Monto a Cobrar de ${person} (USD)`;
-    
-    document.getElementById("settle-debt-amount").value = balance ? balance.toFixed(2) : "";
-    
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    document.getElementById("settle-debt-date").value = `${year}-${month}-${day}`;
-    
-    document.getElementById("settle-debt-notes").value = `Devolución de deudas - ${person}`;
-    
-    // Cargar medios de pago (filtrando Habitación)
-    const selectEl = document.getElementById("settle-debt-payment-method");
-    if (selectEl) {
-        selectEl.innerHTML = "";
-        db.payment_methods.forEach(pm => {
-            if (pm.name.toLowerCase() !== "habitación" && !pm.name.toLowerCase().includes("habitacion")) {
-                const opt = document.createElement("option");
-                opt.value = pm.name;
-                opt.textContent = `${pm.emoji} ${pm.name}`;
-                selectEl.appendChild(opt);
-            }
-        });
-    }
-    
-    document.getElementById("modal-settle-debt").showModal();
-}
-
-function handleSettleDebtSubmit(e) {
-    const person = document.getElementById("settle-debt-person").value;
-    const amount = parseFloat(document.getElementById("settle-debt-amount").value) || 0;
-    const payment_method = document.getElementById("settle-debt-payment-method").value;
-    const date = document.getElementById("settle-debt-date").value;
-    const notes = document.getElementById("settle-debt-notes").value;
-    
-    if (amount <= 0 || !payment_method || !date || !person) return;
-    
-    // Crear gasto negativo para saldar la deuda
-    const settlementExpense = {
-        id: generateUUID(),
-        title: `Devolución de deudas - 👤 ${person}`,
-        amount: -amount,
-        category: "Misceláneas",
-        payment_method: payment_method,
-        date: date,
-        notes: notes,
-        split_group_id: null,
-        debtor_name: person,
-        updated_at: new Date().toISOString()
-    };
-    
-    db.expenses.push(settlementExpense);
-    saveLocal("expenses");
-    
-    // Forzar renderizado en "all"
-    const barEl = document.getElementById("gastos-filter-bar");
-    if (barEl) {
-        barEl.querySelectorAll(".filter-chip").forEach(c => {
-            c.classList.remove("active");
-            if (c.getAttribute("data-cat") === "all") c.classList.add("active");
-        });
-    }
-    
-    renderExpensesList("all");
-}
-
-function updateCuentasClaras() {
-    const cardEl = document.getElementById("cuentas-claras-card");
-    const listEl = document.getElementById("cuentas-claras-list");
-    if (!cardEl || !listEl) return;
-    
-    const balances = {
-        "Agus": 0,
-        "Cata": 0
-    };
-    
-    db.expenses.forEach(e => {
-        if (e.debtor_name && balances.hasOwnProperty(e.debtor_name)) {
-            balances[e.debtor_name] += parseFloat(e.amount) || 0;
-        }
-    });
-    
-    listEl.innerHTML = "";
-    let hasActiveBalances = false;
-    
-    const avatarMap = {
-        "Sofi": '<img src="assets/avatar_sofi.png" style="width:100%; height:100%; object-fit:cover;" alt="Sofi">',
-        "Juanma": '<img src="assets/avatar_juanma.png" style="width:100%; height:100%; object-fit:cover;" alt="Juanma">',
-        "Agus": '<img src="assets/avatar_agus.jpg" style="width:100%; height:100%; object-fit:cover; object-position:center top;" alt="Agus">',
-        "Cata": '<img src="assets/avatar_cata.png" style="width:100%; height:100%; object-fit:contain;" alt="Cata">'
-    };
-    
-    for (const [person, bal] of Object.entries(balances)) {
-        if (Math.abs(bal) > 0.009) {
-            hasActiveBalances = true;
-            
-            const row = document.createElement("div");
-            row.className = "cuenta-person-row";
-            
-            const avatarContent = avatarMap[person] || `<span>${person[0]}</span>`;
-            const isOwed = bal > 0;
-            const balanceText = isOwed ? `Debe ${formatUSD(bal)}` : `A favor ${formatUSD(Math.abs(bal))}`;
-            const balanceColor = isOwed ? "var(--warning-color)" : "var(--success-color)";
-            
-            row.innerHTML = `
-                <div class="cuenta-person-left">
-                    <div class="cuenta-avatar">
-                        ${avatarContent}
-                    </div>
-                    <span class="cuenta-name">${person}</span>
-                </div>
-                <div class="cuenta-person-right">
-                    <span class="cuenta-balance" style="color: ${balanceColor};">${balanceText}</span>
-                    <button class="apple-btn-secondary btn-cobrar" data-person="${person}" data-balance="${bal.toFixed(2)}">
-                        ${isOwed ? "Cobrar" : "Liquidar"}
-                    </button>
-                </div>
-            `;
-            
-            row.querySelector(".btn-cobrar").addEventListener("click", () => {
-                openSettleDebtModal(person, Math.abs(bal));
-            });
-            
-            listEl.appendChild(row);
-        }
-    }
-    
-    cardEl.style.display = hasActiveBalances ? "block" : "none";
-}
 
 function handleCategorySubmit(e) {
     const name = document.getElementById("new-expense-cat-name").value.trim();
